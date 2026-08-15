@@ -27,6 +27,7 @@ import java.util.List;
 import exp.ftxt.R;
 import exp.ftxt.features.battery_bar.BatteryBarConfig;
 import exp.ftxt.features.battery_stats.BatteryStatsConfig;
+import exp.ftxt.features.memory_stats.MemoryConfig;
 
 public class NotificationHelper {
 
@@ -200,6 +201,7 @@ public class NotificationHelper {
 
         if (BatteryStatsConfig.enabled) return true;
         if (BatteryBarConfig.enabled) return true;
+        if (MemoryConfig.enabled) return true;
 
         return false;
     }
@@ -210,6 +212,7 @@ public class NotificationHelper {
         SharedPreferences prefs = context.getSharedPreferences("ftxt_prefs", Context.MODE_PRIVATE);
         if (BatteryStatsConfig.enabled) active.add("Battery");
         if (BatteryBarConfig.enabled) active.add("Bar");
+        if (MemoryConfig.enabled) active.add("Mem");
 
         if (active.isEmpty()) return "Tidak ada overlay aktif";
         return String.join(", ", active) + " aktif";

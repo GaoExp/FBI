@@ -18,6 +18,8 @@ import exp.ftxt.features.battery_bar.BatteryBarConfig;
 import exp.ftxt.features.battery_bar.BatteryBarModule;
 import exp.ftxt.features.battery_stats.BatteryStatsConfig;
 import exp.ftxt.features.battery_stats.BatteryStatsModule;
+import exp.ftxt.features.memory_stats.MemoryConfig;
+import exp.ftxt.features.memory_stats.MemoryModule;
 import exp.ftxt.shared.ui.OverlayModule;
 
 public class FloatingService extends Service {
@@ -30,12 +32,14 @@ public class FloatingService extends Service {
 
     private BatteryStatsModule batteryStatsModule;
     private BatteryBarModule batteryBarModule;
+    private MemoryModule memoryModule;
     private final List<OverlayModule> allModules = new ArrayList<>();
     private BroadcastReceiver configChangeReceiver;
     private BroadcastReceiver screenReceiver;
 
     public BatteryStatsModule getBatteryStatsModule() { return batteryStatsModule; }
     public BatteryBarModule getBatteryBarModule() { return batteryBarModule; }
+    public MemoryModule getMemoryModule() { return memoryModule; }
 
     public static BatteryStatsModule batteryStatsModule() {
         if (instance != null) instance.ensureBatteryStatsModule();
@@ -44,6 +48,10 @@ public class FloatingService extends Service {
     public static BatteryBarModule batteryBarModule() {
         if (instance != null) instance.ensureBatteryBarModule();
         return instance != null ? instance.batteryBarModule : null;
+    }
+    public static MemoryModule memoryModule() {
+        if (instance != null) instance.ensureMemoryModule();
+        return instance != null ? instance.memoryModule : null;
     }
 
     private void ensureBatteryStatsModule() {
@@ -59,6 +67,14 @@ public class FloatingService extends Service {
             batteryBarModule = new BatteryBarModule();
             allModules.add(batteryBarModule);
             batteryBarModule.init(windowManager, this, prefs);
+        }
+    }
+
+    private void ensureMemoryModule() {
+        if (memoryModule == null) {
+            memoryModule = new MemoryModule();
+            allModules.add(memoryModule);
+            memoryModule.init(windowManager, this, prefs);
         }
     }
 
@@ -158,6 +174,7 @@ public class FloatingService extends Service {
 
             if (BatteryStatsConfig.enabled) { ensureBatteryStatsModule(); batteryStatsModule.start(windowManager, this); }
             if (BatteryBarConfig.enabled) { ensureBatteryBarModule(); batteryBarModule.start(windowManager, this); }
+            if (MemoryConfig.enabled) { ensureMemoryModule(); memoryModule.start(windowManager, this); }
 
             acquireWakeLockIfNeeded();
             if (isAnyModuleActive()) {
@@ -269,6 +286,12 @@ public class FloatingService extends Service {
     public static void updateBatteryStatsInPlace() {
         if (instance != null && instance.batteryStatsModule != null && instance.batteryStatsModule.isRunning()) {
             instance.batteryStatsModule.refreshDisplay();
+        }
+    }
+
+    public static void updateMemoryInPlace() {
+        if (instance != null && instance.memoryModule != null && instance.memoryModule.isRunning()) {
+            instance.memoryModule.refreshDisplay();
         }
     }
 

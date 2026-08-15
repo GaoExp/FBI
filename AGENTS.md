@@ -5,8 +5,12 @@
 - **Kerjakan hanya sesuai request user.**
 - **JANGAN refactor / ubah file di luar scope.**
 - **BACA ulang file ini setiap mulai bekerja.**
-- **JANGAN menulis laporan section apapun.**
+- **JANGAN menulis laporan section/bullet list apapun.**
 - ** Gunakan bahasa Indonesia untuk thinking dan respons.**
+- **JANGAN eksekusi apa pun sebelum diskusi selesai DAN user memberi perintah eksekusi.**
+- **JANGAN membuat rencana/daftar langkah lanjutan lalu mengerjakannya sendiri tanpa persetujuan.**
+- **Tindakan destruktif (hapus file, revert, ubah besar) WAJIB konfirmasi eksplisit dulu.**
+- **Jika ada sesuatu yang membingungkan / tidak jelas, JANGAN asal improvisasi — tanya dulu sebelum mengerjakan.**
 
 ---
 
@@ -63,6 +67,15 @@ Sinkron: `cp CHANGELOG.md app/src/main/assets/` jika tidak build.
 3. **JANGAN commit / tag / push**
 4. ulang sampai user perintah **commit & tag**
 
+### Eksekusi & Persetujuan (WAJIB)
+1. **Kerjakan hanya setelah user memberi perintah eksplisit untuk mengerjakan.** Bertanya, menjelaskan, atau menampilkan rencana BUKAN perintah eksekusi.
+2. **Diskusi belum selesai = JANGAN mengerjakan.** Kalau user masih bertanya/membahas, berhenti dan tunggu arahan.
+3. **Jangan pernah membuat daftar "Next Steps"/rencana lanjutan lalu langsung mengeksekusinya sendiri.** Rencana apa pun harus menunggu persetujuan user.
+4. **Tindakan destruktif/berisiko** (hapus file, revert, pindah/potong isi file, mengubah banyak file sekaligus) **WAJIB meminta konfirmasi eksplisit dulu**, walaupun sudah direncanakan.
+5. **Saat ragu apa yang diminta user, tanya dulu** — jangan menebak lalu mengerjakan.
+6. **Jangan asal improvisasi.** Jika suatu pekerjaan/hal terasa membingungkan atau tidak jelas (tujuan, cara, dampak), berhenti dan tanya dulu ke user sebelum mengerjakan.
+7. **Selesai mengerjakan sesuai perintah, berhenti.** Jangan lanjut ke pekerjaan tambahan yang tidak diminta.
+
 ### Pre-release
 1. periksa semua dokumen (README, STRUKTUR, PANDUAN, CHANGELOG)
 2. hapus label ***ONGOING*** pada judul entry
@@ -90,6 +103,9 @@ Sinkron: `cp CHANGELOG.md app/src/main/assets/` jika tidak build.
 | perubahan minimal & fokus | audit project tanpa diminta |
 | jawab singkat & actionable | build |
 | Bahasa Indonesia | checklist panjang |
+| eksekusi hanya setelah perintah eksplisit | mengeksekusi rencana/next steps sendiri tanpa persetujuan |
+| tanya dulu saat ragu / diskusi belum selesai | lanjut mengerjakan saat diskusi belum selesai |
+| konfirmasi dulu untuk hapus/revert/ubah besar | hapus/revert/ubah besar tanpa konfirmasi |
 | | push / commit tanpa izin |
 | | revert perubahan yang dilakukan user tanpa konfirmasi |
 
@@ -101,3 +117,6 @@ Sinkron: `cp CHANGELOG.md app/src/main/assets/` jika tidak build.
 - **Jangan pernah lakukan build** *apapun alasannya*
 
  **Ingat: JANGAN push / commit / tag tanpa perintah user dan JANGAN menulis laporan section apapun yang DILARANG.**
+
+PENTING:
+Saya programmer, tetapi jangan menjelaskan seolah saya AI yang sudah mengetahui seluruh ekosistem Android. Saya ingin penjelasan yang manusiawi dan praktis.

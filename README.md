@@ -1,7 +1,7 @@
 # FBI (Floating Battery Indicator)
 
->**Current Release:** `1.0.0` **Beta**
-**Last Updated:** `2026-08-14`
+>**Current Release:** `1.2.0` **Beta**
+**Last Updated:** `2026-08-15`
 
 >>FBI adalah aplikasi Android overlay yang menampilkan informasi baterai di atas aplikasi lain dengan fitur kustomisasi lengkap untuk warna, ukuran, posisi, dan kontrol sentuhan.
 
@@ -10,7 +10,10 @@
 ## ✨ Fitur Utama
 
 - **Battery Info Overlay** — Satu modul "Battery Info" berisi baris info Suhu (°C), Persen (%), Tegangan (V), Arus (mA), dan Daya (W) dalam satu overlay dengan satu posisi; urutan baris bisa diatur (▲/▼) dan tiap baris bisa disembunyikan; warna nilai, label & pemisah terpisah; interval update bisa diatur; pembacaan data dengan fallback dari sticky broadcast, BatteryManager, dan sysfs
+- **Panel Battery Info 3 Tab** — Panel pengaturan Battery Info memakai bottom navigation **Monitor | Overlay | Battery Strip**: tab Overlay untuk konfigurasi Battery Info, tab Battery Strip untuk konfigurasi Battery Strip, dan tab Monitor (placeholder monitor baterai, dikerjakan nanti)
 - **Battery Strip Overlay** — Bar baterai fleksibel di layar: Mode Cepat (snap ke sisi atas/bawah/kiri/kanan) atau Mode Manual (panjang & posisi bebas), orientasi horizontal/vertikal + invert, warna fill + strip kosong, skema warna level (Tanpa Skema / Klasik 3-warna / Hue Gradien), animasi fade + wave (kedutan gelombang) saat low dan shine + wave saat charging (kecepatan, lebar band, intensitas bisa diatur)
+- **Memory Info Overlay** — Modul overlay pemakaian memori proses (Java Heap, Native Heap, Graphics, Total Proses/PSS) via `Debug.getMemoryInfo()`, polling tiap detik dengan skip render bila nilai tidak berubah; panel pengaturan memakai bottom navigation **Monitor | Overlay** (Monitor = monitoring realtime + simpan snapshot, Overlay = konfigurasi)
+- **Crash Logger** — Saat force close, stack trace otomatis ditulis ke `FBI_crash_*.txt` di folder Download (plus cadangan prefs) agar bug mudah dilaporkan tanpa logcat/adb
 - **Color Wheel & Hue Slider** — Dua mode color picker: HSV color wheel dengan crosshair atau slider Hue/Saturation/Brightness/Alpha. Two-way sync, color name auto-detection, HEX edit manual, saved colors
 - **Safe Area** — Batasi posisi overlay agar tidak masuk area notch/cutout
 - **Touch Passthrough** — Kunci posisi agar sentuhan tembus ke aplikasi belakang (default ON)
@@ -130,8 +133,8 @@ Entry yang di-merge (beberapa versi digabung dalam satu entry): section 🗒️ 
 
 MVC dengan service-based overlay:
 
-- **Model** — Config classes (BatteryStatsConfig, BatteryBarConfig, dll), OverlayPreset, SharedPreferences
-- **View** — Activity utama + panel controllers + overlay modules (ShadowTextView)
+- **Model** — Config classes (BatteryStatsConfig, BatteryBarConfig, MemoryConfig, dll), OverlayPreset, SharedPreferences
+- **View** — Activity utama + panel controllers (Battery, Battery Strip, Memory) + overlay modules (ShadowTextView)
 - **Service** — FloatingService (foreground service + WindowManager)
 
 ### Build

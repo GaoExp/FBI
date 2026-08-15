@@ -199,7 +199,7 @@ public class BatteryPositionController {
         btnLeft = rootView.findViewById(R.id.battery_btnLeft);
         btnRight = rootView.findViewById(R.id.battery_btnRight);
         coordDisplay = rootView.findViewById(R.id.battery_posCoordDisplay);
-        activePresetLabel = rootView.findViewById(R.id.active_preset_label);
+        activePresetLabel = rootView.findViewById(R.id.active_preset_label_battery);
     }
 
     private void setupListeners() {

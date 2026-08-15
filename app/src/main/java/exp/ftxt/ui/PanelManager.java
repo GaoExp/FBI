@@ -8,8 +8,8 @@ import androidx.fragment.app.FragmentTransaction;
 import java.util.HashMap;
 import java.util.Map;
 
-import exp.ftxt.ui.fragment.BatteryBarPanelFragment;
 import exp.ftxt.ui.fragment.BatteryPanelFragment;
+import exp.ftxt.ui.fragment.MemoryPanelFragment;
 
 public class PanelManager {
     private final FragmentManager fragmentManager;
@@ -23,7 +23,7 @@ public class PanelManager {
         this.containerId = containerId;
 
         panelMap.put("battery", BatteryPanelFragment.class);
-        panelMap.put("battery_bar", BatteryBarPanelFragment.class);
+        panelMap.put("memory", MemoryPanelFragment.class);
     }
 
     public void showPanel(String name) {
@@ -38,6 +38,7 @@ public class PanelManager {
         for (Fragment f : fragmentManager.getFragments()) {
             if (f instanceof BasePanelFragment && f.isAdded() && !f.isHidden()) {
                 ft.hide(f);
+                ((BasePanelFragment) f).onPanelHidden();
             }
         }
 

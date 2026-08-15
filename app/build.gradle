@@ -1,4 +1,20 @@
+// Override aapt2 hanya diterapkan di sistem aarch64 (AndroidIDE).
+// Di CI (ubuntu x86_64) biarkan AGP memakai aapt2 dari Maven agar rilis GitHub tidak gagal.
+if (System.getProperty("os.arch", "").toLowerCase().contains("aarch64")) {
+    project.setProperty("android.aapt2FromMavenOverride", "/usr/bin/aapt2")
+}
+
 apply plugin: 'com.android.application'
+
+// Load keystore properties from the project root (optional; file may not exist on all machines/CI)
+import java.util.Properties
+
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
 
 android {
     namespace "exp.ftxt"
@@ -10,16 +26,41 @@ android {
         minSdk 26
         targetSdk 35
 
-        versionCode 2
-        versionName "1.1.0"
+        versionCode 3
+        versionName "1.2.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
     }
 
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.release
+            }
+        }
+    }
+
+    // Rename APK output automatically
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def appName = "FBI"
+            def version = variant.versionName
+
+            outputFileName = "${appName}-v${version}-Beta.apk"
         }
     }
 

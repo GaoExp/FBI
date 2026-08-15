@@ -39,8 +39,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import exp.ftxt.core.FloatingService;
+import exp.ftxt.core.CrashLogger;
 import exp.ftxt.features.battery_bar.BatteryBarConfig;
 import exp.ftxt.features.battery_stats.BatteryStatsConfig;
+import exp.ftxt.features.memory_stats.MemoryConfig;
 import exp.ftxt.ui.PanelManager;
 import exp.ftxt.utils.PermissionHelper;
 
@@ -55,10 +57,12 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String DEFAULT_SIDEBAR_JSON =
         "[{\"id\":\"navBattery\",\"l\":\"Battery Info\"}," +
-        "{\"id\":\"navBatteryBar\",\"l\":\"Battery Strip\"}]";
+        "{\"id\":\"navMemory\",\"l\":\"Memory Info\"}]";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        CrashLogger.init(this);
+
         boolean isDark = getSharedPreferences("ftxt_prefs", MODE_PRIVATE)
                 .getBoolean("theme_dark", true);
 
@@ -285,6 +289,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean isAnyModuleActive() {
         if (BatteryStatsConfig.enabled) return true;
         if (BatteryBarConfig.enabled) return true;
+        if (MemoryConfig.enabled) return true;
 
         return false;
     }
@@ -422,6 +427,35 @@ public class MainActivity extends AppCompatActivity {
         BatteryBarConfig.updateInterval = readFloatPref(prefs, "batbar_update_interval", 1f);
         BatteryBarConfig.touchPassthrough = prefs.getBoolean("batbar_lock", true);
         BatteryBarConfig.safeArea = true;
+
+        MemoryConfig.enabled = prefs.getBoolean("mem_enabled", false);
+        MemoryConfig.size = prefs.getFloat("mem_size", 12f);
+        MemoryConfig.color = prefs.getInt("mem_color", Color.WHITE);
+        MemoryConfig.labelColor = prefs.getInt("mem_label_color", Color.CYAN);
+        MemoryConfig.separatorColor = prefs.getInt("mem_separator_color", Color.GRAY);
+        MemoryConfig.shadow.enabled = prefs.getBoolean("mem_shadow_enabled", false);
+        MemoryConfig.shadow.color = prefs.getInt("mem_shadow_color", Color.BLACK);
+        MemoryConfig.shadow.blur = prefs.getFloat("mem_shadow_blur", 5f);
+        MemoryConfig.shadow.offsetX = prefs.getFloat("mem_shadow_offset_x", 3f);
+        MemoryConfig.shadow.offsetY = prefs.getFloat("mem_shadow_offset_y", 3f);
+        MemoryConfig.safeArea = prefs.getBoolean("mem_safe_area", true);
+        MemoryConfig.touchPassthrough = prefs.getBoolean("mem_lock", true);
+        MemoryConfig.showOnlyValue = prefs.getBoolean("mem_show_only_value", false);
+        MemoryConfig.showJavaHeap = prefs.getBoolean("mem_show_java", true);
+        MemoryConfig.showNativeHeap = prefs.getBoolean("mem_show_native", true);
+        MemoryConfig.showGraphics = prefs.getBoolean("mem_show_graphics", true);
+        MemoryConfig.showTotal = prefs.getBoolean("mem_show_total", true);
+        MemoryConfig.itemOrder = prefs.getString("mem_item_order", "java,native,graphics,total");
+        MemoryConfig.bg.enabled = prefs.getBoolean("mem_bg_enabled", false);
+        MemoryConfig.bg.color = prefs.getInt("mem_bg_color", 0xCC000000);
+        MemoryConfig.bg.padding = prefs.getInt("mem_bg_padding", 8);
+        MemoryConfig.bg.offsetX = prefs.getInt("mem_bg_offset_x", 0);
+        MemoryConfig.bg.offsetY = prefs.getInt("mem_bg_offset_y", 0);
+        MemoryConfig.bg.margin = prefs.getInt("mem_bg_margin", 0);
+        MemoryConfig.bg.radius = prefs.getInt("mem_bg_radius", 0);
+        MemoryConfig.updateInterval = readFloatPref(prefs, "mem_update_interval", 1f);
+        MemoryConfig.posX = prefs.getFloat("mem_pos_x_port", 0.05f);
+        MemoryConfig.posY = prefs.getFloat("mem_pos_y_port", 0.6f);
     }
 
     private float readFloatPref(SharedPreferences prefs, String key, float defaultVal) {
@@ -435,7 +469,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateNavSelection(int selectedId) {
-        int[] allIds = {R.id.navBattery, R.id.navBatteryBar};
+        int[] allIds = {R.id.navBattery, R.id.navMemory};
         for (int id : allIds) {
             View v = findViewById(id);
             if (v != null) {
@@ -495,6 +529,7 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject item = arr.getJSONObject(i);
                 String id = item.optString("id", null);
+                if ("navBatteryBar".equals(id)) continue;
                 list.add(new SidebarItem(normalizeSidebarLabel(id, item.getString("l")), id));
             }
         } catch (Exception e) {
@@ -639,22 +674,22 @@ public class MainActivity extends AppCompatActivity {
 
     private String normalizeSidebarLabel(String id, String label) {
         if ("navBattery".equals(id)) return "Battery Info";
-        if ("navBatteryBar".equals(id)) return "Battery Strip";
+        if ("navMemory".equals(id)) return "Memory Info";
         return label;
     }
 
     @Nullable
     private String panelIdToName(int itemId) {
         if (itemId == R.id.navBattery) return "battery";
-        if (itemId == R.id.navBatteryBar) return "battery_bar";
+        if (itemId == R.id.navMemory) return "memory";
         return null;
     }
 
     private void updateActionBarTitle(int itemId) {
         if (itemId == R.id.navBattery) {
             getSupportActionBar().setTitle(R.string.nav_battery);
-        } else if (itemId == R.id.navBatteryBar) {
-            getSupportActionBar().setTitle(R.string.nav_battery_bar);
+        } else if (itemId == R.id.navMemory) {
+            getSupportActionBar().setTitle(R.string.nav_memory);
         }
     }
 

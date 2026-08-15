@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 
 import exp.ftxt.features.battery_bar.BatteryBarConfig;
 import exp.ftxt.features.battery_stats.BatteryStatsConfig;
+import exp.ftxt.features.memory_stats.MemoryConfig;
 
 public class BootReceiver extends BroadcastReceiver {
 
@@ -18,9 +19,11 @@ public class BootReceiver extends BroadcastReceiver {
 
         BatteryStatsConfig.enabled = prefs.getBoolean("battery_enabled", false);
         BatteryBarConfig.enabled = prefs.getBoolean("batbar_enabled", false);
+        MemoryConfig.enabled = prefs.getBoolean("mem_enabled", false);
 
         boolean anyActive = BatteryStatsConfig.enabled
-                || BatteryBarConfig.enabled;
+                || BatteryBarConfig.enabled
+                || MemoryConfig.enabled;
 
         if (anyActive) {
             context.startForegroundService(new Intent(context, FloatingService.class));

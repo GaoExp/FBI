@@ -10,5 +10,10 @@
 /app/build
 /captures
 FBI_memori_*.txt
+_temp/
 .externalNativeBuild
+keystore.properties
+# key/ — folder untuk keystore CI, file sensitif diabaikan
+/key/*.jks
+/key/alias-key
 

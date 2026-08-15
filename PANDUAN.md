@@ -42,12 +42,12 @@ Drawer terdiri dari menu berikut (urutan default; item panel bisa di-reorder den
 
 | Menu | Fungsi |
 |------|--------|
-| Battery Info | Suhu (°C), persen (%), tegangan, arus, dan daya dalam satu modul |
-| Battery Strip | Bar baterai fleksibel (snap ke sisi atau manual) |
+| Battery Info | Panel dengan 3 tab: Monitor (placeholder), Overlay (Battery Info), Battery Strip |
+| Memory Info | Panel dengan 2 tab: Monitor (pemakaian memori realtime) dan Overlay (konfigurasi) |
 | Kill Service | Hentikan semua layanan overlay + tutup app |
 | Keluar | Tutup UI aplikasi, overlay tetap berjalan |
 
-Pengaturan & izin aplikasi diakses melalui ikon gear (⚙️) di toolbar, bukan dari drawer.
+> **Catatan:** Battery Strip tidak lagi menjadi item drawer tersendiri — konfigurasinya ada di tab **Battery Strip** di dalam panel **Battery Info**. Konfigurasi & izin aplikasi diakses melalui ikon gear (⚙️) di toolbar, bukan dari drawer.
 
 ---
 
@@ -63,6 +63,8 @@ Ikon di pojok kanan toolbar:
 
 Header toolbar menampilkan navigasi drawer dan judul modul yang aktif.
 
+> **Muat Preset** menyesuaikan tab yang sedang aktif di panel: di panel Battery Info, tab Overlay memuat preset Battery Info dan tab Battery Strip memuat preset Battery Strip; tab Monitor menampilkan pemberitahuan (belum ada preset).
+
 ---
 
 ## Fitur Overlay
@@ -76,6 +78,12 @@ Setiap panel overlay memiliki pengaturan yang dikelompokkan dalam **section coll
 Klik header section untuk membuka/tutup grup.
 
 ### Battery Info
+Panel Battery Info memakai **bottom navigation 3 tab**: **Monitor | Overlay | Battery Strip**.
+- **Tab Monitor** — Placeholder "Monitor baterai sedang dikerjakan" (fitur monitor baterai direncanakan, belum tersedia).
+- **Tab Overlay** — Seluruh konfigurasi overlay Battery Info (isi dari sub-bagian "Battery Info" di bawah).
+- **Tab Battery Strip** — Seluruh konfigurasi Battery Strip (isi dari sub-bagian "Battery Strip" di bawah).
+
+#### Battery Info (tab Overlay)
 - Menampilkan suhu (°C), persen (%), tegangan (V), arus (mA), dan daya (W) baterai dalam **satu modul kesatuan** dengan satu posisi
 - **Tampilan Overlay** — Atur urutan tampilan baris info dengan menyeret ikon ≡; tiap baris (Suhu, Persen, Voltase, Arus, Daya) punya checkbox untuk tampil/sembunyikan. Section ini juga berisi Sembunyikan Label, Update interval, Ukuran Teks, dan preview warna
 - **Warna Label Terpisah** — Tombol "Label" untuk warna satuan terpisah dari nilai angka
@@ -86,6 +94,7 @@ Klik header section untuk membuka/tutup grup.
 - Interval update bisa diatur (default 5d)
 
 ### Battery Strip
+Berikut adalah konten tab **Battery Strip** di dalam panel **Battery Info**:
 - Menampilkan bar baterai sebagai strip di layar (level mengikuti persentase baterai)
 - **Mode Cepat** — Bar menempel penuh di salah satu sisi layar (Atas/Bawah/Kiri/Kanan). Posisi & panjang otomatis mengikuti sisi yang dipilih. Kontrol posisi manual nonaktif dalam mode ini. **Area Aman selalu terkunci aktif** (checkbox tercentang, disabled) dan Kunci Posisi (touch passthrough) tidak tersedia.
 - **Mode Manual** — Matikan "Mode Cepat" untuk mengatur panjang bar (0–100%) dan posisi bebas (slider X/Y, D-Pad) per orientasi layar. **Area Aman otomatis terkunci aktif** dalam mode ini.
@@ -95,6 +104,13 @@ Klik header section untuk membuka/tutup grup.
 - **Charging** — Bar menampilkan animasi shine saat perangkat di-charge. Efek ini bisa disesuaikan di section **Animasi Pengisian Daya**: **Animasi Shine** (on/off, default nonaktif), **Kecepatan Shine**, dan **Lebar Band**. Section ini juga berisi **Animasi Wave saat charging** (gelombang mengalir sepanjang bar): **Animasi Wave** (on/off, default nonaktif), **Kecepatan Wave**, dan **Intensitas Wave**.
 - **Baterai Rendah** — Saat level di bawah ambang low, bar menampilkan **animasi Wave** (kedutan gelombang): pola gelombang sinus yang menjalar sepanjang bar, berjalan bersamaan dengan animasi fade. Sesuaikan di section **Animasi Baterai Rendah**: **Animasi Wave** (on/off, default nonaktif), **Kecepatan Wave**, **Intensitas Wave**. Section ini juga berisi Warna Low, Ambang Low, **Animasi Fade** (on/off, default nonaktif), dan Kecepatan Fade.
 - Pengaturan lain: ketebalan, radius sudut, orientasi horizontal/vertikal, invert, strip kosong.
+
+### Memory Info
+Panel Memory Info memakai **bottom navigation 2 tab**: **Monitor | Overlay**.
+- **Tab Monitor** — Monitoring pemakaian memori proses secara langsung, diperbarui tiap detik: **Java Heap (Dalvik)**, **Native Heap**, **Graphics**, dan **Total Proses (PSS)**. Tombol **"Simpan Snapshot ke Download"** menyimpan riwayat 20 snapshot terakhir ke file teks `FBI_memori_*.txt` di folder Download (urutan tertua→terbaru, masing-masing berisi waktu). Polling otomatis berhenti saat tab Overlay aktif, panel tersembunyi, atau app di-pause.
+- **Tab Overlay** — Konfigurasi overlay Memory Info: toggle aktif + kunci posisi, section Tampilan Overlay (pilih item Java/Native/Graphics/Total yang tampil, sembunyikan label, ukuran teks, warna nilai/label/pemisah), Posisi (slider X/Y, D-Pad, koordinat, safe area), Shadow, Background — pola sama dengan Battery Info.
+
+Data memori dibaca via `Debug.getMemoryInfo()`; warna label default CYAN; posisi default `0.6` agar tidak bertumpuk dengan battery (`0.8`).
 
 ### Color Picker
 Color Wheel dan Hue/Saturation/Value/Alpha slider tersedia saat mengetuk preview warna:
@@ -121,7 +137,7 @@ Akses preset dari **icon gear → "Muat Preset"**. Dialog preset terbuka dengan:
 - **Search bar** — Cari preset berdasarkan nama atau tag
 - **Header**: tombol **Tandai** — Aktifkan mode pilih, checkbox muncul di tiap item
 - **Header**: tombol **Tandai Semua** — Centang/hapus centang semua item
-- **Bottom bar (normal)**: **Simpan** — Simpan seluruh konfigurasi panel aktif; **Impor** — Impor dari file
+- **Bottom bar (normal)**: **Simpan** — Simpan seluruh konfigurasi modul/tab yang aktif (di panel Battery Info: tab Overlay menyimpan preset Battery Info, tab Battery Strip menyimpan preset Battery Strip); **Impor** — Impor dari file
 - **Bottom bar (Tandai)**: **Hapus**, **Favorit**, **Bagikan**, **Ekspor** — Aksi batch untuk item terpilih
 - **Tap item**: menu dengan **Gunakan Preset** di urutan pertama
 - **Long-press item**: **Drag & drop** — Tukar posisi preset dalam daftar
@@ -145,6 +161,8 @@ Diakses dari **icon gear → "Konfigurasi"**:
 - **Izin Notifikasi** — Kelola izin notifikasi kontrol
 - **Optimasi Baterai** — Kelola izin nonaktifkan optimasi baterai
 - **Ikon Aplikasi** — Ganti ikon launcher antara Default dan Alternatif (tanpa uninstall)
+
+> Monitoring memori realtime + simpan snapshot yang dulu ada di halaman Konfigurasi kini dipindah ke tab **Monitor** di panel **Memory Info**.
 
 ---
 
