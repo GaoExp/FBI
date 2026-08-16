@@ -1,15 +1,21 @@
 package exp.ftxt.ui;
 
+import android.animation.ObjectAnimator;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Debug;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,12 +23,15 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 
@@ -32,7 +41,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayDeque;
 import java.util.Date;
 import java.util.Locale;
 
@@ -40,6 +48,7 @@ import exp.ftxt.MainActivity;
 import exp.ftxt.R;
 import exp.ftxt.core.FloatingService;
 import exp.ftxt.features.memory_stats.MemoryConfig;
+import exp.ftxt.features.memory_stats.MemoryMonitor;
 import exp.ftxt.shared.ui.ColorPickerDialog;
 import exp.ftxt.shared.ui.SectionHelper;
 import exp.ftxt.shared.ui.SliderLabelEditor;
@@ -91,12 +100,23 @@ public class MemoryPanelController implements DefaultLifecycleObserver {
     private View memTabMonitor;
     private View memTabOverlay;
     private BottomNavigationView memBottomNav;
-    private TextView memMonitorText;
+    private TextView memMonitorFbiText;
+    private TextView memMonitorFbiText2;
+    private TextView memMonitorRuntimeText;
+    private TextView memMonitorSystemText;
+    private TextView memMonitorRamTotalText;
+    private TextView memMonitorRamUsedText;
+    private TextView memMonitorRamUsedPercentText;
+    private ProgressBar memMonitorRamBar;
+    private TextView memMonitorStatusBadge;
     private Button memMonitorExportButton;
+    private Button memMonitorCopyButton;
+    private Button memMonitorToggleButton;
+    private SwitchCompat memBgMonitorSwitch;
+    private boolean manualMonitorActive = false;
+    private int monitorLabelColor;
 
-    private static final int MONITOR_HISTORY_SIZE = 20;
     private final Handler monitorHandler = new Handler(Looper.getMainLooper());
-    private final ArrayDeque<MemorySnapshot> monitorHistory = new ArrayDeque<>(MONITOR_HISTORY_SIZE);
     private final Runnable monitorRunnable = new Runnable() {
         @Override
         public void run() {
@@ -104,22 +124,6 @@ public class MemoryPanelController implements DefaultLifecycleObserver {
             monitorHandler.postDelayed(this, 1000);
         }
     };
-
-    private static class MemorySnapshot {
-        final long time;
-        final int javaKb;
-        final int nativeKb;
-        final int graphicsKb;
-        final int totalKb;
-
-        MemorySnapshot(long time, int javaKb, int nativeKb, int graphicsKb, int totalKb) {
-            this.time = time;
-            this.javaKb = javaKb;
-            this.nativeKb = nativeKb;
-            this.graphicsKb = graphicsKb;
-            this.totalKb = totalKb;
-        }
-    }
 
     public MemoryPanelController(MainActivity activity, View rootView) {
         this.activity = activity;
@@ -138,6 +142,7 @@ public class MemoryPanelController implements DefaultLifecycleObserver {
     @Override
     public void onPause(@NonNull LifecycleOwner owner) {
         stopMonitorPolling();
+        stopManualMonitor();
     }
 
     public void onPanelShown() {
@@ -149,6 +154,7 @@ public class MemoryPanelController implements DefaultLifecycleObserver {
 
     public void onPanelHidden() {
         stopMonitorPolling();
+        stopManualMonitor();
     }
 
     public void showLoadPresetDialog() {
@@ -159,6 +165,7 @@ public class MemoryPanelController implements DefaultLifecycleObserver {
 
     public void cleanup() {
         stopMonitorPolling();
+        stopManualMonitor();
         activity.getLifecycle().removeObserver(this);
         if (memoryPositionController != null) {
             memoryPositionController.cleanup();
@@ -207,8 +214,20 @@ public class MemoryPanelController implements DefaultLifecycleObserver {
         memTabMonitor = rootView.findViewById(R.id.memTabMonitor);
         memTabOverlay = rootView.findViewById(R.id.memTabOverlay);
         memBottomNav = rootView.findViewById(R.id.memBottomNav);
-        memMonitorText = rootView.findViewById(R.id.memMonitorText);
+        memMonitorFbiText = rootView.findViewById(R.id.memMonitorFbiText);
+        memMonitorFbiText2 = rootView.findViewById(R.id.memMonitorFbiText2);
+        memMonitorRuntimeText = rootView.findViewById(R.id.memMonitorRuntimeText);
+        memMonitorSystemText = rootView.findViewById(R.id.memMonitorSystemText);
+        memMonitorRamTotalText = rootView.findViewById(R.id.memMonitorRamTotalText);
+        memMonitorRamUsedText = rootView.findViewById(R.id.memMonitorRamUsedText);
+        memMonitorRamUsedPercentText = rootView.findViewById(R.id.memMonitorRamUsedPercentText);
+        memMonitorRamBar = rootView.findViewById(R.id.memMonitorRamBar);
+        memMonitorStatusBadge = rootView.findViewById(R.id.memMonitorStatusBadge);
+        monitorLabelColor = activity.getColor(R.color.mem_monitor_label);
         memMonitorExportButton = rootView.findViewById(R.id.memMonitorExportButton);
+        memMonitorCopyButton = rootView.findViewById(R.id.memMonitorCopyButton);
+        memMonitorToggleButton = rootView.findViewById(R.id.memMonitorToggleButton);
+        memBgMonitorSwitch = rootView.findViewById(R.id.memBgMonitorSwitch);
 
         View sectionPosition = rootView.findViewById(R.id.mem_sectionPosition);
         TextView sectionPositionHeader = rootView.findViewById(R.id.mem_sectionPositionHeader);
@@ -260,6 +279,9 @@ public class MemoryPanelController implements DefaultLifecycleObserver {
         activity.applyCheckboxTint(memLockSwitch, MemoryConfig.touchPassthrough);
         memValueOnlyCheck.setChecked(MemoryConfig.showOnlyValue);
         memSafeArea.setChecked(MemoryConfig.safeArea);
+        memBgMonitorSwitch.setChecked(MemoryConfig.backgroundMonitor);
+        applySwitchTint(memBgMonitorSwitch, MemoryConfig.backgroundMonitor);
+        updateMonitorToggleButton();
         memSizeLabel.setText("Ukuran Teks: " + (int) MemoryConfig.size);
         memBgPaddingLabel.setText("Ukuran Background: " + MemoryConfig.bg.padding);
         memBgOffsetXLabel.setText("Offset X: " + MemoryConfig.bg.offsetX);
@@ -566,14 +588,131 @@ public class MemoryPanelController implements DefaultLifecycleObserver {
                 memTabOverlay.setVisibility(View.GONE);
                 resumeMonitorPolling();
             } else {
+                if (!MemoryConfig.backgroundMonitor) {
+                    showBackgroundRequiredDialog();
+                    blinkBgSwitch();
+                    return true;
+                }
                 memTabOverlay.setVisibility(View.VISIBLE);
                 memTabMonitor.setVisibility(View.GONE);
                 stopMonitorPolling();
             }
             return true;
         });
+        memMonitorToggleButton.setOnClickListener(v -> handleMonitorToggle());
+        memBgMonitorSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> handleBgMonitorSwitch(isChecked));
         memMonitorExportButton.setOnClickListener(v -> exportMemorySnapshot());
+        memMonitorCopyButton.setOnClickListener(v -> copyToClipboard());
         memBottomNav.setSelectedItemId(R.id.memTabNavMonitor);
+    }
+
+    private void handleMonitorToggle() {
+        if (MemoryConfig.backgroundMonitor) {
+            showStopBackgroundDialog();
+        } else if (manualMonitorActive) {
+            stopManualMonitor();
+        } else {
+            startManualMonitor();
+        }
+    }
+
+    private void startManualMonitor() {
+        manualMonitorActive = true;
+        MemoryMonitor.start(activity);
+        updateMonitorToggleButton();
+        updateMonitorInfo();
+        resumeMonitorPolling();
+    }
+
+    private void stopManualMonitor() {
+        if (!manualMonitorActive) return;
+        manualMonitorActive = false;
+        MemoryMonitor.stop();
+        updateMonitorToggleButton();
+        updateMonitorInfo();
+    }
+
+    private void handleBgMonitorSwitch(boolean isChecked) {
+        MemoryConfig.backgroundMonitor = isChecked;
+        applySwitchTint(memBgMonitorSwitch, isChecked);
+        activity.getSharedPreferences("ftxt_prefs", MainActivity.MODE_PRIVATE)
+                .edit().putBoolean("mem_bg_monitor", isChecked).apply();
+
+        if (isChecked) {
+            manualMonitorActive = false;
+            FloatingService.setBackgroundMonitorEnabled(true);
+            if (FloatingService.instance == null) {
+                activity.startService(new Intent(activity, FloatingService.class));
+            }
+            updateMonitorToggleButton();
+            updateMonitorInfo();
+            resumeMonitorPolling();
+        } else {
+            manualMonitorActive = false;
+            FloatingService.setBackgroundMonitorEnabled(false);
+            disableOverlayIfRunning();
+            updateMonitorToggleButton();
+            updateMonitorInfo();
+        }
+    }
+
+    private void disableOverlayIfRunning() {
+        if (!MemoryConfig.enabled) return;
+        MemoryConfig.enabled = false;
+        activity.applyCheckboxTint(memSwitch, false);
+        memSwitch.setChecked(false);
+        activity.getSharedPreferences("ftxt_prefs", MainActivity.MODE_PRIVATE)
+                .edit().putBoolean("mem_enabled", false).apply();
+        FloatingService.stopModule(FloatingService.memoryModule());
+    }
+
+    private void showStopBackgroundDialog() {
+        new AlertDialog.Builder(activity)
+                .setTitle("Hentikan Pemantauan")
+                .setMessage("Hentikan pemantauan? Pemantauan latar belakang akan dimatikan.")
+                .setPositiveButton("Ya", (dialog, which) -> {
+                    memBgMonitorSwitch.setChecked(false);
+                })
+                .setNegativeButton("Tidak", null)
+                .show();
+    }
+
+    private void showBackgroundRequiredDialog() {
+        new AlertDialog.Builder(activity)
+                .setTitle("Pemantauan Latar Belakang")
+                .setMessage("Pemantauan latar belakang harus dinyalakan")
+                .setPositiveButton("OK", null)
+                .show();
+    }
+
+    private void blinkBgSwitch() {
+        ObjectAnimator animator = ObjectAnimator.ofFloat(memBgMonitorSwitch, "alpha", 1f, 0.2f, 1f, 0.2f, 1f);
+        animator.setDuration(900);
+        animator.start();
+    }
+
+    private void updateMonitorToggleButton() {
+        if (memMonitorToggleButton == null) return;
+        if (MemoryConfig.backgroundMonitor || manualMonitorActive) {
+            memMonitorToggleButton.setText("Hentikan Pemantauan");
+            memMonitorToggleButton.setBackgroundTintList(
+                    ColorStateList.valueOf(activity.getColor(R.color.mem_monitor_stop)));
+        } else {
+            memMonitorToggleButton.setText("Mulai Pemantauan");
+            memMonitorToggleButton.setBackgroundTintList(
+                    ColorStateList.valueOf(activity.getColor(R.color.mem_monitor_header)));
+        }
+        updateMonitorStatusBadge();
+    }
+
+    private void updateMonitorStatusBadge() {
+        if (memMonitorStatusBadge == null) return;
+        boolean running = MemoryConfig.backgroundMonitor || manualMonitorActive;
+        memMonitorStatusBadge.setText(running ? "● Berjalan" : "● Berhenti");
+        memMonitorStatusBadge.setTextColor(activity.getColor(running
+                ? R.color.mem_monitor_active : R.color.mem_monitor_stopped));
+        memMonitorStatusBadge.setBackgroundResource(running
+                ? R.drawable.mem_badge_active_bg : R.drawable.mem_badge_stopped_bg);
     }
 
     private void resumeMonitorPolling() {
@@ -587,69 +726,134 @@ public class MemoryPanelController implements DefaultLifecycleObserver {
     }
 
     private void updateMonitorInfo() {
-        if (memMonitorText == null) return;
-        Debug.MemoryInfo info = readMonitorMemory();
-        memMonitorText.setText(
-                "Java Heap   : " + formatMb(info.dalvikPss) + "\n" +
-                "Native Heap : " + formatMb(info.nativePss) + "\n" +
-                "Graphics    : " + formatMb(graphicsPssKb(info)) + "\n" +
-                "Total Proses: " + formatMb(info.getTotalPss()));
-        monitorHistory.addLast(new MemorySnapshot(System.currentTimeMillis(),
-                info.dalvikPss, info.nativePss, graphicsPssKb(info), info.getTotalPss()));
-        while (monitorHistory.size() > MONITOR_HISTORY_SIZE) {
-            monitorHistory.removeFirst();
-        }
+        if (memMonitorFbiText == null) return;
+        MemoryMonitor.Snapshot s = MemoryMonitor.getLastSnapshot();
+
+        SpannableStringBuilder fbi = new SpannableStringBuilder();
+        appendLine(fbi, "Java Heap", formatMb(s.javaKb), 14);
+        appendLine(fbi, "Native Heap", formatMb(s.nativeKb), 14);
+        appendLine(fbi, "Graphics", formatMb(s.graphicsKb), 14);
+        appendLine(fbi, "Other PSS", formatMb(s.otherPssKb), 14);
+        appendLine(fbi, "Total Proses", formatMb(s.totalKb), 14);
+        appendLine(fbi, "Private Dirty", formatMb(s.privateDirtyKb), 14);
+        appendLine(fbi, "Private Clean", formatMb(s.privateCleanKb), 14);
+        memMonitorFbiText.setText(fbi);
+
+        SpannableStringBuilder fbi2 = new SpannableStringBuilder();
+        appendLine(fbi2, "Shared Dirty", formatMb(s.sharedDirtyKb), 14);
+        appendLine(fbi2, "Swapped", formatMb(s.swappedKb), 14);
+        appendLine(fbi2, "Code", formatMb(s.codeKb), 14);
+        appendLine(fbi2, "Stack", formatMb(s.stackKb), 14);
+        appendLine(fbi2, "System", formatMb(s.systemKb), 14);
+        appendLine(fbi2, "Private Other", formatMb(s.privateOtherKb), 14);
+        appendLine(fbi2, "System Other", formatMb(s.systemOtherKb), 14);
+        memMonitorFbiText2.setText(fbi2);
+
+        SpannableStringBuilder runtime = new SpannableStringBuilder();
+        appendLine(runtime, "Heap Terpakai", formatMb(s.heapUsedKb));
+        appendLine(runtime, "Heap Bebas", formatMb(s.heapFreeKb));
+        appendLine(runtime, "Heap Maksimum", formatMb(s.heapMaxKb));
+        memMonitorRuntimeText.setText(runtime);
+
+        long totalRam = s.totalRamKb;
+        long usedRam = Math.max(0, totalRam - s.availRamKb);
+        int ramPercent = totalRam > 0 ? (int) Math.round(usedRam * 100.0 / totalRam) : 0;
+        memMonitorRamTotalText.setText(formatMb(totalRam));
+        memMonitorRamUsedText.setText(formatMb(usedRam));
+        memMonitorRamUsedPercentText.setText(ramPercent + "%");
+        memMonitorRamBar.setProgress(ramPercent);
+
+        SpannableStringBuilder system = new SpannableStringBuilder();
+        appendLine(system, "Tersedia", formatMb(s.availRamKb));
+        appendLine(system, "Cached", s.cachedKb >= 0 ? formatMb(s.cachedKb) : "—");
+        memMonitorSystemText.setText(system);
     }
 
-    private Debug.MemoryInfo readMonitorMemory() {
-        Debug.MemoryInfo info = new Debug.MemoryInfo();
-        Debug.getMemoryInfo(info);
-        return info;
+    private void appendLine(SpannableStringBuilder sb, String label, String value) {
+        appendLine(sb, label, value, 16);
     }
 
-    private String formatMb(int kb) {
+    private void appendLine(SpannableStringBuilder sb, String label, String value, int padWidth) {
+        String padded = String.format(Locale.US, "%-" + padWidth + "s", label);
+        int start = sb.length();
+        sb.append(padded).append(value).append("\n");
+        sb.setSpan(new ForegroundColorSpan(monitorLabelColor),
+                start, start + padded.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+    }
+
+    private String formatMb(long kb) {
         return String.format(Locale.US, "%.1f MB", kb / 1024f);
     }
 
-    private int graphicsPssKb(Debug.MemoryInfo info) {
-        String stat = info.getMemoryStat("summary.graphics");
-        if (stat == null) return 0;
-        try {
-            int end = stat.indexOf(' ');
-            if (end > 0) {
-                return Integer.parseInt(stat.substring(0, end));
-            }
-            return Integer.parseInt(stat.trim());
-        } catch (NumberFormatException e) {
-            return 0;
-        }
+    private void applySwitchTint(SwitchCompat sw, boolean isChecked) {
+        int track = activity.getColor(isChecked
+                ? R.color.mem_monitor_active : R.color.mem_monitor_stopped);
+        sw.setThumbTintList(ColorStateList.valueOf(activity.getColor(android.R.color.white)));
+        sw.setTrackTintList(ColorStateList.valueOf(track));
+    }
+
+    private void copyToClipboard() {
+        if (memMonitorFbiText == null) return;
+        StringBuilder sb = new StringBuilder();
+        sb.append("Proses FBI\n").append(combineFbiColumns());
+        sb.append("\n\nRuntime Java\n").append(memMonitorRuntimeText.getText());
+        sb.append("\n\nRAM Sistem\n").append(memMonitorSystemText.getText());
+        ClipboardManager cm = (ClipboardManager) activity.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+        if (cm == null) return;
+        cm.setPrimaryClip(ClipData.newPlainText("FBI Info Memori", sb.toString()));
+        Toast.makeText(activity, "Disalin ke clipboard", Toast.LENGTH_SHORT).show();
+    }
+
+    private String combineFbiColumns() {
+        String left = memMonitorFbiText.getText().toString().trim();
+        String right = memMonitorFbiText2.getText().toString().trim();
+        if (left.isEmpty()) return right;
+        if (right.isEmpty()) return left;
+        return left + "\n" + right;
     }
 
     private void exportMemorySnapshot() {
         String exportTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
                 .format(new Date());
+        MemoryMonitor.Snapshot[] history = MemoryMonitor.getHistory();
         StringBuilder sb = new StringBuilder();
         sb.append("FBI - Info Memori (Riwayat 20 Detik)\n");
         sb.append("Ekspor: ").append(exportTime).append("\n");
-        sb.append("Jumlah snapshot: ").append(monitorHistory.size()).append("\n\n");
+        sb.append("Jumlah snapshot: ").append(history.length).append("\n\n");
         int index = 1;
         SimpleDateFormat timeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-        for (MemorySnapshot snap : monitorHistory) {
+        for (MemoryMonitor.Snapshot snap : history) {
             String time = timeFormat.format(new Date(snap.time));
             sb.append("--- Snapshot ").append(index++)
-                    .append("/").append(monitorHistory.size())
+                    .append("/").append(history.length)
                     .append(" (").append(time).append(") ---\n");
             sb.append("Java Heap (Dalvik): ").append(formatMb(snap.javaKb)).append("\n");
             sb.append("Native Heap       : ").append(formatMb(snap.nativeKb)).append("\n");
             sb.append("Graphics          : ").append(formatMb(snap.graphicsKb)).append("\n");
-            sb.append("Total Proses (PSS): ").append(formatMb(snap.totalKb)).append("\n\n");
+            sb.append("Other PSS         : ").append(formatMb(snap.otherPssKb)).append("\n");
+            sb.append("Total Proses (PSS): ").append(formatMb(snap.totalKb)).append("\n");
+            sb.append("Private Dirty     : ").append(formatMb(snap.privateDirtyKb)).append("\n");
+            sb.append("Private Clean     : ").append(formatMb(snap.privateCleanKb)).append("\n");
+            sb.append("Shared Dirty      : ").append(formatMb(snap.sharedDirtyKb)).append("\n");
+            sb.append("Swapped           : ").append(formatMb(snap.swappedKb)).append("\n");
+            sb.append("Code              : ").append(formatMb(snap.codeKb)).append("\n");
+            sb.append("Stack             : ").append(formatMb(snap.stackKb)).append("\n");
+            sb.append("System            : ").append(formatMb(snap.systemKb)).append("\n");
+            sb.append("Private Other     : ").append(formatMb(snap.privateOtherKb)).append("\n");
+            sb.append("System Other      : ").append(formatMb(snap.systemOtherKb)).append("\n");
+            sb.append("Heap Terpakai     : ").append(formatMb(snap.heapUsedKb)).append("\n");
+            sb.append("Heap Bebas        : ").append(formatMb(snap.heapFreeKb)).append("\n");
+            sb.append("Heap Maksimum     : ").append(formatMb(snap.heapMaxKb)).append("\n");
+            sb.append("RAM Total         : ").append(formatMb(snap.totalRamKb)).append("\n");
+            sb.append("RAM Tersedia      : ").append(formatMb(snap.availRamKb)).append("\n");
+            sb.append("RAM Cached        : ").append(snap.cachedKb >= 0 ? formatMb(snap.cachedKb) : "—").append("\n\n");
         }
 
         String fileName = "FBI_memori_" + System.currentTimeMillis() + ".txt";
         try {
             if (writeSnapshotToDownload(sb.toString(), fileName)) {
                 Toast.makeText(activity, "Tersimpan: Download/" + fileName +
-                        " (" + monitorHistory.size() + " snapshot)", Toast.LENGTH_LONG).show();
+                        " (" + history.length + " snapshot)", Toast.LENGTH_LONG).show();
             } else {
                 Toast.makeText(activity, "Gagal menyimpan snapshot", Toast.LENGTH_SHORT).show();
             }

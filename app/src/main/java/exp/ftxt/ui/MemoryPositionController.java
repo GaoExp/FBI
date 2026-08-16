@@ -37,7 +37,7 @@ public class MemoryPositionController {
 
     private final PresetHandler.Delegate delegate = new PresetHandler.Delegate() {
         @Override
-        public String moduleLabel() { return "Memory Info"; }
+        public String moduleLabel() { return "Info Memori"; }
         @Override
         public String moduleType() { return "memory"; }
         @Override

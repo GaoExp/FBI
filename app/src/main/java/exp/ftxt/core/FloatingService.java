@@ -20,6 +20,7 @@ import exp.ftxt.features.battery_stats.BatteryStatsConfig;
 import exp.ftxt.features.battery_stats.BatteryStatsModule;
 import exp.ftxt.features.memory_stats.MemoryConfig;
 import exp.ftxt.features.memory_stats.MemoryModule;
+import exp.ftxt.features.memory_stats.MemoryMonitor;
 import exp.ftxt.shared.ui.OverlayModule;
 
 public class FloatingService extends Service {
@@ -82,7 +83,7 @@ public class FloatingService extends Service {
         for (OverlayModule module : allModules) {
             if (module.isRunning()) return true;
         }
-        return false;
+        return MemoryConfig.backgroundMonitor;
     }
 
     private void registerConfigReceiver() {
@@ -175,6 +176,9 @@ public class FloatingService extends Service {
             if (BatteryStatsConfig.enabled) { ensureBatteryStatsModule(); batteryStatsModule.start(windowManager, this); }
             if (BatteryBarConfig.enabled) { ensureBatteryBarModule(); batteryBarModule.start(windowManager, this); }
             if (MemoryConfig.enabled) { ensureMemoryModule(); memoryModule.start(windowManager, this); }
+            if (MemoryConfig.backgroundMonitor) {
+                MemoryMonitor.start(this);
+            }
 
             acquireWakeLockIfNeeded();
             if (isAnyModuleActive()) {
@@ -289,6 +293,19 @@ public class FloatingService extends Service {
         }
     }
 
+    public static void setBackgroundMonitorEnabled(boolean enabled) {
+        if (enabled) {
+            if (instance != null) {
+                MemoryMonitor.start(instance);
+            }
+        } else {
+            MemoryMonitor.stop();
+            if (instance != null) {
+                instance.stopSelfIfEmpty();
+            }
+        }
+    }
+
     public static void updateMemoryInPlace() {
         if (instance != null && instance.memoryModule != null && instance.memoryModule.isRunning()) {
             instance.memoryModule.refreshDisplay();
@@ -314,6 +331,7 @@ public class FloatingService extends Service {
         for (OverlayModule module : instance.allModules) {
             module.stop();
         }
+        MemoryMonitor.stop();
         instance.releaseWakeLockIfEmpty();
         instance.unregisterConfigReceiver();
         instance.unregisterScreenReceiver();
@@ -354,6 +372,7 @@ public class FloatingService extends Service {
         NotificationHelper.stopIconCycling();
         unregisterConfigReceiver();
         unregisterScreenReceiver();
+        MemoryMonitor.stop();
 
         for (OverlayModule module : allModules) {
             module.stop();

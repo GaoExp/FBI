@@ -1,3 +1,50 @@
+# [1.3.0] - 2026-08-15 versionCode 4
+### ✨ Fitur Baru
+- **Tombol Mulai Pemantauan / Hentikan Pemantauan** di tab Monitor panel Memory Info: nilai tidak lagi otomatis berjalan saat panel dibuka — pengguna menekan tombol untuk mulai menghitung, menekan lagi (atau keluar panel) untuk berhenti. Nilai tampil 0.0 MB sebelum dimulai dan kembali 0.0 MB saat dihentikan.
+- **Switch Pemantauan Latar Belakang** di tab Monitor: polling memori berjalan terus di background (via `FloatingService`) meskipun app ditutup — berhenti jika service di-kill. Saat switch menyala, tombol Mulai/Hentikan otomatis berubah menjadi "Hentikan Pemantauan"; menekannya memunculkan dialog konfirmasi "Hentikan pemantauan? Pemantauan latar belakang akan dimatikan." Menyalakan/mematikan switch juga menyalakan/mematikan polling (mematikan langsung, tanpa dialog).
+- **Overlay Memory Info hanya bisa dipakai saat Pemantauan Latar Belakang aktif**: saat switch mati, overlay ikut dinonaktifkan, dan tab Overlay tidak bisa diakses — muncul dialog "Pemantauan latar belakang harus dinyalakan" plus animasi berkedip pada switch.
+- **Tombol Salin Ke Clipboard** di tab Monitor: menyalin seluruh nilai monitor saat ini (Proses FBI, Runtime Java, RAM Sistem) ke clipboard dengan toast konfirmasi.
+- Kelas baru `MemoryMonitor`: polling memori terpusat (statis, handler per detik) yang dipakai bersama oleh tab Monitor dan background service, menampung riwayat 20 snapshot terakhir.
+- **Tab Monitor diperluas menjadi 3 bagian berjudul**: **Proses FBI** (Java Heap, Native Heap, Graphics, Other PSS, Total Proses, Private Dirty, Private Clean, Shared Dirty, Swapped, Code, Stack, System, Private Other, System Other — semua dari `Debug.getMemoryInfo()`), **Runtime Java** (Heap Terpakai, Heap Bebas, Heap Maksimum via `Runtime.getRuntime()`), **RAM Sistem** (Total & Tersedia via `ActivityManager.MemoryInfo`, Cached dibaca dari `/proc/meminfo` — tampil "—" bila gagal baca).
+### 🚮 Fitur Dihapus
+- **Fitur "Proses Lain" dihapus** dari tab Monitor Info Memori: switch **Baca Proses Lain**, tombol urut **A-Z/PSS**, switch **Balik Urutan**, dan kartu **Proses Lain** (daftar proses + ikon + PSS) beserta dukungan kodenya (pembacaan `getRunningAppProcesses()` + `getProcessMemoryInfo()`, prefs `mem_read_processes`, `mem_process_sort_mode`, `mem_process_sort_invert`) dihapus karena sejak Android 7.0 API `getRunningAppProcesses()` hanya mengembalikan proses penting/foreground sehingga daftar proses lain tidak lagi berguna. Bagian **Proses Lain** juga dihapus dari tombol Salin Ke Clipboard dan Simpan Snapshot.
+### ♻️ Perubahan Fitur
+- Tampilan tab Monitor dirombak dari satu blok teks menjadi **dashboard kartu**: tiap bagian (**Proses FBI**, **Runtime Java**, **RAM Sistem**) berada dalam kartu terpisah berlatar membulat (`mem_card_bg`, radius 14dp, outline tipis) dengan **strip aksen warna berbeda per kartu** (RAM Sistem ungu, Proses FBI biru, Runtime Java hijau), judul berwarna aksen plus penghitung nilai di kanan header ("14 nilai" / "3 nilai"), dan teks monospace dengan label abu serta label/nilai sejajar. Warna kartu, judul, label, dan badge otomatis mengikuti tema gelap/terang.
+- Ditambahkan **kartu ringkasan RAM Sistem** di paling atas: Total RAM dalam angka besar, RAM Terpakai + persentase pemakaian, dan **progress bar horizontal** yang terisi sesuai persentase RAM terpakai; baris detail di bawahnya hanya **Tersedia** dan **Cached** (baris "Total" dihapus karena redundant).
+- Daftar 14 nilai **Proses FBI** ditampilkan dalam **2 kolom** (7 kiri & 7 kanan) agar lebih padat dan hemat ruang vertikal.
+- Header tab Monitor memakai **badge status pill** "● Berjalan" (hijau) / "● Berhenti" (abu) yang sejajar dalam satu baris dengan deskripsi "Pemantauan real-time memori proses aplikasi FBI"; judul "Info Memori" di header dihapus. Label modul **"Memory Info" diubah menjadi "Info Memori"** (drawer, toolbar, toggle panel, dialog preset).
+- Tombol **Mulai/Hentikan Pemantauan** dibuat satu baris penuh yang menonjol (biru saat berhenti, merah saat monitoring berjalan); switch **Latar Belakang** diubah dari CheckBox menjadi **Switch** (hijau saat aktif, abu saat mati).
+- Tombol **Salin** & **Simpan Snapshot** dipindah dari dasar scroll ke baris tetap di bawah area data sehingga selalu terlihat tanpa scroll.
+- Spacing tab Monitor dirapikan agar lebih efisien ruang: padding kartu 14dp→12dp, jarak antar kartu & kontrol dikurangi, line spacing data monospace 3dp→2dp.
+- Perilaku polling diubah: tab Monitor tidak lagi berjalan otomatis saat dibuka — dikendalikan tombol Mulai/Hentikan (manual, mati saat panel ditutup) atau switch Pemantauan Latar Belakang (tetap jalan di background). **Kill Service** ikut mematikan Pemantauan Latar Belakang.
+- "Simpan Snapshot ke Download" diperluas: tiap snapshot kini menyertakan seluruh nilai Proses FBI, Runtime Java, dan RAM Sistem; data dibaca dari riwayat `MemoryMonitor` sehingga tetap tersedia saat background monitor aktif.
+### 🐞 Bug Fixes
+- (tidak ada)
+### 💡 Catatan
+- Tombol Salin Ke Clipboard menyalin nilai monitor sesuai teks yang tampil (nilai terakhir / 0.0 MB bila belum berjalan).
+### 🗒️ File Added
+- app/src/main/java/exp/ftxt/features/memory_stats/MemoryMonitor.java
+- app/src/main/res/drawable/mem_card_bg.xml
+- app/src/main/res/drawable/mem_badge_active_bg.xml
+- app/src/main/res/drawable/mem_badge_stopped_bg.xml
+### ✏️ File Changed
+- app/src/main/java/exp/ftxt/features/memory_stats/MemoryConfig.java
+- app/src/main/java/exp/ftxt/ui/MemoryPanelController.java
+- app/src/main/java/exp/ftxt/ui/MemoryPositionController.java
+- app/src/main/res/layout/panel_memory.xml
+- app/src/main/res/drawable/mem_card_bg.xml
+- app/src/main/res/values/colors.xml
+- app/src/main/res/values-night/colors.xml
+- app/src/main/res/values/strings.xml
+- app/src/main/java/exp/ftxt/core/FloatingService.java
+- app/src/main/java/exp/ftxt/MainActivity.java
+- app/src/main/java/exp/ftxt/core/BootReceiver.java
+- app/build.gradle
+### 🔥 File Removed
+- (tidak ada)
+
+---
+
 # [1.2.0] - 2026-08-15 versionCode 3
 ### ✨ Fitur Baru
 - Modul overlay **Memory Info**: menampilkan pemakaian memori proses secara langsung di layar (Java Heap, Native Heap, Graphics, Total Proses/PSS) via `Debug.getMemoryInfo()` — polling setiap detik dengan `updateDisplay()` yang skip render bila nilai tidak berubah.
@@ -13,8 +60,7 @@
 - Info Memori (monitoring realtime + simpan snapshot) **dipindah dari halaman Konfigurasi** ke panel **Memory Info** yang kini punya **bottom navigation Monitor | Overlay** — tab **Monitor** = halaman monitoring (nilai per detik + tombol snapshot), tab **Overlay** = konfigurasi overlay Memory Info. Halaman Konfigurasi kini hanya berisi izin & ikon aplikasi.
 - Polling monitor di panel Memory Info berhenti saat tab Overlay aktif, panel tersembunyi, atau app di-pause (via `onPanelHidden` baru di `BasePanelFragment`/`PanelManager` dan `DefaultLifecycleObserver` di controller) — tidak ada polling background saat monitoring tidak terlihat.
 ### 🔧 Optimasi & Penyesuaian
-- Bottom navigation panel Memory Info dirapikan: tinggi bar dikurangi (minHeight 52dp + padding item kecil), indikator aktif (pill) dibuat transparan agar tidak lagi menutupi/bertabrakan dengan label, dan tiap tab diberi ikon (Monitor/Overlay) sehingga layout label tidak lagi tampak aneh tanpa ikon.
-- Bottom navigation panel **Memory Info dan Battery Info disamakan & diperkecil**: tinggi bar 52dp → 45dp, ukuran ikon 24dp → 18dp, ukuran teks 12sp → 10sp, padding item dikurangi agar tidak memakan ruang panel.
+- Bottom navigation panel **Info Memori dan Battery Info disamakan & diperkecil**: tinggi bar 52dp → 45dp, ukuran ikon 24dp → 18dp, ukuran teks 12sp → 10sp, padding item dikurangi agar tidak memakan ruang panel; indikator aktif (pill) dibuat transparan agar tidak menutupi/bertabrakan dengan label, dan tiap tab diberi ikon (Monitor/Overlay) sehingga layout label tidak tampak aneh tanpa ikon.
 ### 🐞 Bug Fixes
 - **Force close saat membuka panel Battery Info** (`StackOverflowError`): rekursi tak berujung karena `showTab` memanggil `setSelectedItemId` di dalam listener bottom nav, dan Material `NavigationBarView.setSelectedItemId` memicu listener kembali walau item yang dipilih sama. Diperbaiki dengan menghapus pemanggilan `setSelectedItemId` dari dalam listener/showTab (pemilihan item sudah ditangani otomatis oleh bottom nav).
 ### 💡 Catatan
@@ -82,7 +128,7 @@
 ### ✨ Fitur Baru
 - Project FBI lahir sebagai aplikasi overlay mandiri berisi modul baterai hasil duplikasi dari FTxT.
 - Battery Stats: satu overlay berisi baris info suhu (°C), persen (%), tegangan (V), arus (mA), dan daya (W) dengan pengaturan warna, shadow, background, posisi, touch passthrough, safe area.
-- Urutan Info: urutan baris info (Suhu, Persen, Tegangan, Arus, Daya) bisa diatur via drag & drop (seret ikon ≡ pada tiap baris); tiap baris bisa disembunyikan via toggle °C/%/V/mA/W.
+- Urutan Info: urutan baris info (Suhu, Persen, Tegangan, Arus, Daya) diatur via **chip drag dua zona 'Aktif'/'Nonaktif'** — seret chip untuk mengubah urutan, geser antar zona untuk menampilkan/menyembunyikan baris.
 - Battery Bar: bar persentase baterai (mode quick menempel di sisi layar / mode bebas) dengan efek fade, shine, wave, chargeWave, dan skema warna Classic/Hue.
 - Panel pengaturan sidebar untuk 2 modul baterai (Battery Stats, Battery Bar).
 - Sistem preset, color picker (HSV + Triangle), drag & posisi (slider/d-pad), shadow & background config.
@@ -94,11 +140,9 @@
 - Battery Current melebur ke Battery Stats: tegangan/arus/daya menjadi bagian dari modul Battery Stats dengan satu posisi dan satu set ukuran/warna/shadow/background.
 - Nama aplikasi diganti menjadi FBI (label aplikasi, judul/channel notifikasi, header sidebar, path ekspor preset).
 - Navigasi sidebar jadi 2 modul (Battery Stats, Battery Bar).
-- Urutan Info kini memakai drag & drop (RecyclerView + ItemTouchHelper, seret ikon ≡) menggantikan tombol ▲/▼ — urutan disimpan ke `battery_item_order` dan diterapkan saat drop (drag berhenti).
+- Urutan Info memakai **chip drag dua zona 'Aktif'/'Nonaktif'** (BatteryOrderZonesView): chip diseret untuk mengubah urutan dan digeser antar zona untuk menampilkan/menyembunyikan baris — menggantikan tombol ▲/▼; urutan disimpan ke `battery_item_order` dan diterapkan saat drag berhenti.
 - Nama modul overlay diubah agar perbedaannya lebih mencolok: **Battery Stats → Battery Info**, **Battery Bar → Battery Strip** — diterapkan di sidebar (drawer), judul toolbar, switch panel, dialog preset, dan dokumen. Label sidebar lama di prefs dinormalisasi otomatis berdasarkan id menu.
 - Panel Battery Info direstrukturisasi: section 'Tampilan' lama dihapus (chevron tidak lagi diperlukan); seluruh isinya (Sembunyikan Label, Update interval, Ukuran Teks, preview warna) digabung ke section 'Urutan Info' yang dipindah ke posisi teratas dan berganti nama menjadi **'Tampilan Overlay'**.
-- Checkbox tampil °C/%/V/mA/W dipindah dari section 'Tampilan' ke dalam tiap baris daftar urutan info — setiap baris kini punya checkbox show/hide di sebelah label (item_battery_order.xml, logika di BatteryOrderAdapter).
-- Urutan Info Battery Info diubah menjadi **chip drag dua zona** 'Aktif'/'Nonaktif' (BatteryOrderZonesView): chip diseret untuk mengubah urutan, digeser antar zona untuk menampilkan/menyembunyikan baris — menggantikan daftar drag & drop RecyclerView (item_battery_order.xml + BatteryOrderAdapter yang dihapus).
 - `itemOrder` kini ikut tersimpan/termuat saat simpan/muat preset Battery Info (BatteryPositionController).
 ### 🔧 Optimasi & Penyesuaian
 - Semua PNG background UI (main, toolbar, drawer, header) di drawable & drawable-night diganti shape gradient agar hemat memori bitmap (hemat ±13–25 MB).
@@ -107,13 +151,11 @@
 - Warna appbar (toolbar_bg) digelapkan di tema terang (#FFFFFF/#EFEFEF → #455A64/#37474F) dan gelap (#2A2A2A/#1C1C1C → #212121/#111111) agar kontras dengan panel utama; judul & ikon toolbar (hamburger, menu) diset warna putih agar tetap terbaca.
 - Package source dikembalikan dari `f.bat` ke `exp.ftxt` (namespace `exp.ftxt`) — seluruh folder source dipindah `java/f/bat/` → `java/exp/ftxt/` agar kode siap diambil FTxT tanpa perubahan lagi; `applicationId` FBI dibedakan menjadi `exp.ftxt.fbi` agar tidak menimpa FTxT (`exp.ftxt`) saat diinstall berdampingan.
 - Chip urutan info di Battery Info (BatteryOrderZonesView) diperbesar: ukuran teks 13sp → 15sp dan padding 10/4/10/4dp → 14/8/14/8dp (chip asli & drag ghost) agar lebih mudah disentuh/di-drag.
-- NotificationHelper dioptimasi untuk RAM: `startIconCycling()` tidak lagi membuat Bitmap/Canvas/RemoteViews/PendingIntent baru setiap 10 detik — bitmap ikon suhu di-cache (dibuat ulang hanya saat nilai berubah), RemoteViews + onClick PendingIntent dibuat sekali via `ensureCachedViews()` (dipakai buildNotification & buildNotificationDynamic), IntentFilter sticky baterai di-cache; alokasi sampah per siklus berkurang drastis.
+- NotificationHelper dioptimasi untuk RAM: `startIconCycling()` tidak lagi membuat Bitmap/Canvas/RemoteViews/PendingIntent baru setiap 10 detik — bitmap ikon suhu di-cache (dibuat ulang hanya saat nilai berubah), RemoteViews + onClick PendingIntent dibuat sekali via `ensureCachedViews()` (dipakai buildNotification & buildNotificationDynamic), IntentFilter sticky baterai di-cache, dan `notify()` di-skip bila suhu & ikon toggle tidak berubah dari siklus sebelumnya (`lastNotifiedKey`) — `Notification` baru hanya dibangun saat nilai berubah; alokasi sampah per siklus berkurang drastis.
 - WakeLock dioptimasi untuk RAM: WakeLock PARTIAL hanya dipegang saat layar menyala — `WakeLockManager.acquire()` batal jika layar mati (`PowerManager.isInteractive()`), dan FloatingService mendengar `ACTION_SCREEN_ON`/`ACTION_SCREEN_OFF` untuk melepas WakeLock saat layar mati dan mengakuisisi lagi saat layar nyala (selama modul aktif). Proses bisa idle saat layar mati sehingga memori bisa dipadatkan sistem.
-- Pembacaan baterai dihemat: BatteryBarModule menggabung 2 `registerReceiver` per tick (percent + charging) menjadi 1 pembacaan status (`readBatteryStatus`), dan `IntentFilter` ACTION_BATTERY_CHANGED di-cache static di BatteryBarModule & BatteryStatsModule (tidak dibuat baru tiap pembacaan).
+- Pembacaan baterai dihemat: BatteryBarModule menggabung 2 `registerReceiver` per tick (percent + charging) menjadi 1 pembacaan status (`readBatteryStatus`) dengan **satu `BroadcastReceiver` permanen** yang didaftarkan di `start()` dan dilepas di `stop()` (nilai baterai di-cache ke field, tetap diperbarui sticky broadcast ACTION_BATTERY_CHANGED), dan `IntentFilter` ACTION_BATTERY_CHANGED di-cache static di BatteryBarModule & BatteryStatsModule — tick interval tidak lagi memicu alokasi receiver/intent baru.
 - Animasi BatteryBarView dihemat: animator infinite (fade/shine/wave/chargeWave) dihentikan saat overlay disembunyikan (`onVisibilityChanged` visibility GONE) dan dimulai lagi saat ditampilkan — tidak ada `invalidate()` ±60fps saat overlay tidak terlihat.
 - Alokasi render overlay dihemat: `updateDisplay()` di BatteryStatsModule & BatteryBarModule kini skip bila nilai tidak berubah — BatteryStats cache teks terakhir (`lastRenderedText`, di-reset saat warna/label/separator berubah), BatteryBar cache status terakhir (percent/charging/low); `SpannableString` + `ForegroundColorSpan` per karakter, `setText`, dan `invalidate()` hanya dibuat saat teks/status benar-benar berubah.
-- Pembacaan baterai dihemat lebih jauh: BatteryBarModule mengganti `registerReceiver(null, ...)` per tick dengan satu `BroadcastReceiver` permanen yang didaftarkan di `start()` dan dilepas di `stop()` — nilai baterai di-cache ke field dan tetap diperbarui oleh sticky broadcast ACTION_BATTERY_CHANGED; tick interval tidak lagi memicu alokasi receiver/intent baru.
-- Siklus notifikasi 10 detik dihemat: `startIconCycling()` skip `notify()` bila suhu & ikon toggle tidak berubah dari siklus sebelumnya (`lastNotifiedKey`) — `Notification` baru hanya dibangun saat nilai berubah.
 - `FloatingService.restartModule()` (stop+start = removeView+addView) tidak lagi dipanggil oleh panel — diganti update in-place: helper baru `updateBatteryBarInPlace()` (applyAppearance + reloadLayout + updatePosition) dan `updateBatteryStatsInPlace()` (via `refreshDisplay()` baru di BatteryStatsModule). Diterapkan di `BatteryBarPositionController.syncToService`, `BatteryBarPanelController.restart()` (semua pengaturan bar), dan `BatteryPanelController` (urutan info & interval) — overlay tidak di-rebuild saat setting diubah, mengurangi churn window/surface.
 ### 🐞 Bug Fixes
 - Force close saat membuka Color Picker dialog (dialog_color_picker.xml): tag class `TriangleColorPickerView` tidak konsisten dengan package project — disamakan menjadi `exp.ftxt.features.color_picker.*`.

@@ -21,6 +21,7 @@ public class MemoryConfig {
     public static boolean showTotal = true;
     public static boolean showOnlyValue = false;
     public static String itemOrder = "java,native,graphics,total";
+    public static boolean backgroundMonitor = false;
     public static float posX = 0.05f;
     public static float posY = 0.6f;
     public static float updateInterval = 1f;

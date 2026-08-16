@@ -12,25 +12,71 @@
             <LinearLayout
                 android:id="@+id/memTabMonitor"
                 android:orientation="vertical"
-                android:padding="20dp"
+                android:padding="16dp"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1">
 
-                <TextView
-                    android:text="Info Memori"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"/>
+                    android:layout_height="wrap_content">
 
-                <TextView
-                    android:text="Angka diperbarui otomatis setiap detik."
-                    android:textSize="12sp"
+                    <TextView
+                        android:text="Pemantauan real-time memori proses aplikasi FBI"
+                        android:textSize="11sp"
+                        android:textColor="@color/mem_monitor_label"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"/>
+
+                    <TextView
+                        android:id="@+id/memMonitorStatusBadge"
+                        android:text="● Berhenti"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:background="@drawable/mem_badge_stopped_bg"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="5dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"/>
+
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/memMonitorToggleButton"
+                    android:text="Mulai Pemantauan"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"/>
+                    android:layout_marginTop="8dp"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    android:backgroundTint="@color/mem_monitor_header"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:paddingTop="11dp"
+                    android:paddingBottom="11dp"/>
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp">
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/memBgMonitorSwitch"
+                        android:text="Latar Belakang"
+                        android:textSize="13sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                </LinearLayout>
 
                 <androidx.core.widget.NestedScrollView
                     android:layout_width="match_parent"
@@ -45,25 +91,292 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 
-                        <TextView
-                            android:id="@+id/memMonitorText"
-                            android:textSize="13sp"
-                            android:typeface="monospace"
+                        <LinearLayout
+                            android:orientation="vertical"
+                            android:background="@drawable/mem_card_bg"
                             android:padding="12dp"
-                            android:background="#22000000"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="12dp"/>
+                            android:layout_marginBottom="10dp">
 
-                        <Button
-                            android:id="@+id/memMonitorExportButton"
-                            android:text="Simpan Snapshot ke Download"
+                            <LinearLayout
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                                <View
+                                    android:layout_width="3dp"
+                                    android:layout_height="15dp"
+                                    android:background="@color/mem_monitor_ram"/>
+
+                                <TextView
+                                    android:text="RAM Sistem"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/mem_monitor_ram"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="8dp"/>
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="1dp"
+                                    android:layout_weight="1"/>
+
+                                <TextView
+                                    android:id="@+id/memMonitorRamUsedPercentText"
+                                    android:text="0%"
+                                    android:textSize="17sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/mem_monitor_ram"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"/>
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:orientation="horizontal"
+                                android:gravity="bottom"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="10dp">
+
+                                <LinearLayout
+                                    android:orientation="vertical"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1">
+
+                                    <TextView
+                                        android:text="TOTAL RAM"
+                                        android:textSize="10sp"
+                                        android:textColor="@color/mem_monitor_label"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"/>
+
+                                    <TextView
+                                        android:id="@+id/memMonitorRamTotalText"
+                                        android:text="0.0 MB"
+                                        android:textSize="24sp"
+                                        android:textStyle="bold"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="2dp"/>
+
+                                </LinearLayout>
+
+                                <LinearLayout
+                                    android:orientation="vertical"
+                                    android:gravity="end"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content">
+
+                                    <TextView
+                                        android:text="TERPAKAI"
+                                        android:textSize="10sp"
+                                        android:textColor="@color/mem_monitor_label"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"/>
+
+                                    <TextView
+                                        android:id="@+id/memMonitorRamUsedText"
+                                        android:text="0.0 MB"
+                                        android:textSize="17sp"
+                                        android:textStyle="bold"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="4dp"/>
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+
+                            <ProgressBar
+                                android:id="@+id/memMonitorRamBar"
+                                style="?android:attr/progressBarStyleHorizontal"
+                                android:max="100"
+                                android:progress="0"
+                                android:progressTint="@color/mem_monitor_ram"
+                                android:progressBackgroundTint="@color/mem_monitor_bar_track"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"/>
+
+                            <TextView
+                                android:id="@+id/memMonitorSystemText"
+                                android:textSize="12sp"
+                                android:typeface="monospace"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"/>
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:orientation="vertical"
+                            android:background="@drawable/mem_card_bg"
+                            android:padding="12dp"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"/>
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp">
+
+                            <LinearLayout
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="6dp">
+
+                                <View
+                                    android:layout_width="3dp"
+                                    android:layout_height="15dp"
+                                    android:background="@color/mem_monitor_header"/>
+
+                                <TextView
+                                    android:text="Proses FBI"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/mem_monitor_header"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="8dp"/>
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="1dp"
+                                    android:layout_weight="1"/>
+
+                                <TextView
+                                    android:text="14 nilai"
+                                    android:textSize="10sp"
+                                    android:textColor="@color/mem_monitor_label"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"/>
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:orientation="horizontal"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                                <TextView
+                                    android:id="@+id/memMonitorFbiText"
+                                    android:textSize="12sp"
+                                    android:typeface="monospace"
+                                    android:lineSpacingExtra="2dp"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"/>
+
+                                <TextView
+                                    android:id="@+id/memMonitorFbiText2"
+                                    android:textSize="12sp"
+                                    android:typeface="monospace"
+                                    android:lineSpacingExtra="2dp"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginStart="8dp"/>
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:orientation="vertical"
+                            android:background="@drawable/mem_card_bg"
+                            android:padding="12dp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp">
+
+                            <LinearLayout
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="6dp">
+
+                                <View
+                                    android:layout_width="3dp"
+                                    android:layout_height="15dp"
+                                    android:background="@color/mem_monitor_runtime"/>
+
+                                <TextView
+                                    android:text="Runtime Java"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/mem_monitor_runtime"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="8dp"/>
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="1dp"
+                                    android:layout_weight="1"/>
+
+                                <TextView
+                                    android:text="3 nilai"
+                                    android:textSize="10sp"
+                                    android:textColor="@color/mem_monitor_label"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"/>
+
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/memMonitorRuntimeText"
+                                android:textSize="12sp"
+                                android:typeface="monospace"
+                                android:lineSpacingExtra="2dp"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"/>
+
+                        </LinearLayout>
 
                     </LinearLayout>
 
                 </androidx.core.widget.NestedScrollView>
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+
+                    <Button
+                        android:id="@+id/memMonitorCopyButton"
+                        android:text="Salin"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:textSize="12sp"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:paddingTop="10dp"
+                        android:paddingBottom="10dp"/>
+
+                    <Button
+                        android:id="@+id/memMonitorExportButton"
+                        android:text="Simpan Snapshot"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textSize="12sp"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:paddingTop="10dp"
+                        android:paddingBottom="10dp"/>
+
+                </LinearLayout>
 
             </LinearLayout>
 
@@ -89,7 +402,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <!-- Memory Info + Kunci Posisi -->
+                <!-- Info Memori + Kunci Posisi -->
                 <LinearLayout
                     android:orientation="horizontal"
                     android:layout_width="match_parent"
@@ -98,7 +411,7 @@
 
                     <CheckBox
                         android:id="@+id/memSwitch"
-                        android:text="Memory Info"
+                        android:text="Info Memori"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"/>

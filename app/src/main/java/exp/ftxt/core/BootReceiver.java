@@ -20,10 +20,12 @@ public class BootReceiver extends BroadcastReceiver {
         BatteryStatsConfig.enabled = prefs.getBoolean("battery_enabled", false);
         BatteryBarConfig.enabled = prefs.getBoolean("batbar_enabled", false);
         MemoryConfig.enabled = prefs.getBoolean("mem_enabled", false);
+        MemoryConfig.backgroundMonitor = prefs.getBoolean("mem_bg_monitor", false);
 
         boolean anyActive = BatteryStatsConfig.enabled
                 || BatteryBarConfig.enabled
-                || MemoryConfig.enabled;
+                || MemoryConfig.enabled
+                || MemoryConfig.backgroundMonitor;
 
         if (anyActive) {
             context.startForegroundService(new Intent(context, FloatingService.class));

@@ -43,7 +43,7 @@ Drawer terdiri dari menu berikut (urutan default; item panel bisa di-reorder den
 | Menu | Fungsi |
 |------|--------|
 | Battery Info | Panel dengan 3 tab: Monitor (placeholder), Overlay (Battery Info), Battery Strip |
-| Memory Info | Panel dengan 2 tab: Monitor (pemakaian memori realtime) dan Overlay (konfigurasi) |
+| Info Memori | Panel dengan 2 tab: Monitor (pemakaian memori realtime) dan Overlay (konfigurasi) |
 | Kill Service | Hentikan semua layanan overlay + tutup app |
 | Keluar | Tutup UI aplikasi, overlay tetap berjalan |
 
@@ -70,7 +70,7 @@ Header toolbar menampilkan navigasi drawer dan judul modul yang aktif.
 ## Fitur Overlay
 
 Setiap panel overlay memiliki pengaturan yang dikelompokkan dalam **section collapsible**:
-- **▾ Tampilan Overlay** — Urutan baris info (drag & drop, checkbox tampil tiap baris), sembunyikan label, update interval, ukuran teks, dan warna
+- **▾ Tampilan Overlay** — Urutan baris info (chip drag dua zona Aktif/Nonaktif), sembunyikan label, update interval, ukuran teks, dan warna
 - **▾ Posisi** — Kontrol posisi (slider X/Y, D-Pad, area aman)
 - **▾ Shadow** — Konfigurasi shadow (toggle, warna, blur, offset)
 - **▾ Background** — Konfigurasi background (toggle, warna, padding, offset, margin, radius)
@@ -85,7 +85,7 @@ Panel Battery Info memakai **bottom navigation 3 tab**: **Monitor | Overlay | Ba
 
 #### Battery Info (tab Overlay)
 - Menampilkan suhu (°C), persen (%), tegangan (V), arus (mA), dan daya (W) baterai dalam **satu modul kesatuan** dengan satu posisi
-- **Tampilan Overlay** — Atur urutan tampilan baris info dengan menyeret ikon ≡; tiap baris (Suhu, Persen, Voltase, Arus, Daya) punya checkbox untuk tampil/sembunyikan. Section ini juga berisi Sembunyikan Label, Update interval, Ukuran Teks, dan preview warna
+- **Tampilan Overlay** — Atur urutan tampilan baris info dengan menyeret chip antar zona **Aktif** dan **Nonaktif**; chip di zona Nonaktif disembunyikan dari overlay. Section ini juga berisi Sembunyikan Label, Update interval, Ukuran Teks, dan preview warna
 - **Warna Label Terpisah** — Tombol "Label" untuk warna satuan terpisah dari nilai angka
 - **Warna Pemisah** — Baris info dipisahkan tanda `|` (misal `37.4°C | 87% | 4.1V | +120mA | 0.5W`) yang warnanya bisa diatur sendiri
 - Opsi **Sembunyikan Label** untuk tampilan nilai saja
@@ -105,10 +105,10 @@ Berikut adalah konten tab **Battery Strip** di dalam panel **Battery Info**:
 - **Baterai Rendah** — Saat level di bawah ambang low, bar menampilkan **animasi Wave** (kedutan gelombang): pola gelombang sinus yang menjalar sepanjang bar, berjalan bersamaan dengan animasi fade. Sesuaikan di section **Animasi Baterai Rendah**: **Animasi Wave** (on/off, default nonaktif), **Kecepatan Wave**, **Intensitas Wave**. Section ini juga berisi Warna Low, Ambang Low, **Animasi Fade** (on/off, default nonaktif), dan Kecepatan Fade.
 - Pengaturan lain: ketebalan, radius sudut, orientasi horizontal/vertikal, invert, strip kosong.
 
-### Memory Info
-Panel Memory Info memakai **bottom navigation 2 tab**: **Monitor | Overlay**.
-- **Tab Monitor** — Monitoring pemakaian memori proses secara langsung, diperbarui tiap detik: **Java Heap (Dalvik)**, **Native Heap**, **Graphics**, dan **Total Proses (PSS)**. Tombol **"Simpan Snapshot ke Download"** menyimpan riwayat 20 snapshot terakhir ke file teks `FBI_memori_*.txt` di folder Download (urutan tertua→terbaru, masing-masing berisi waktu). Polling otomatis berhenti saat tab Overlay aktif, panel tersembunyi, atau app di-pause.
-- **Tab Overlay** — Konfigurasi overlay Memory Info: toggle aktif + kunci posisi, section Tampilan Overlay (pilih item Java/Native/Graphics/Total yang tampil, sembunyikan label, ukuran teks, warna nilai/label/pemisah), Posisi (slider X/Y, D-Pad, koordinat, safe area), Shadow, Background — pola sama dengan Battery Info.
+### Info Memori
+Panel Info Memori memakai **bottom navigation 2 tab**: **Monitor | Overlay**.
+- **Tab Monitor** — Dashboard pemantauan memori proses per detik dalam **3 kartu**: **Proses FBI** (14 nilai: Java Heap, Native Heap, Graphics, Other PSS, Total Proses, Private Dirty/Clean, Shared Dirty, Swapped, Code, Stack, System, Private/System Other — 2 kolom), **Runtime Java** (Heap Terpakai, Heap Bebas, Heap Maksimum), dan **RAM Sistem** (Total, Terpakai + persentase + progress bar, Tersedia, Cached). Pemantauan dimulai lewat tombol **Mulai Pemantauan** (nilai tampil 0.0 MB sebelum berjalan) dan dihentikan dengan tombol **Hentikan Pemantauan**. Switch **Pemantauan Latar Belakang** membuat polling terus berjalan di background meski app ditutup (berhenti saat Kill Service). Tombol **Salin Ke Clipboard** menyalin seluruh nilai monitor saat ini, dan **Simpan Snapshot** menulis riwayat 20 snapshot terakhir ke file teks `FBI_memori_*.txt` di folder Download.
+- **Tab Overlay** — Konfigurasi overlay Info Memori: toggle aktif + kunci posisi, section Tampilan Overlay (pilih item Java/Native/Graphics/Total yang tampil, sembunyikan label, ukuran teks, warna nilai/label/pemisah), Posisi (slider X/Y, D-Pad, koordinat, safe area), Shadow, Background — pola sama dengan Battery Info. Overlay hanya bisa diaktifkan saat **Pemantauan Latar Belakang** menyala; jika switch mati, tab Overlay tidak bisa diakses dan overlay ikut dinonaktifkan.
 
 Data memori dibaca via `Debug.getMemoryInfo()`; warna label default CYAN; posisi default `0.6` agar tidak bertumpuk dengan battery (`0.8`).
 
@@ -162,7 +162,7 @@ Diakses dari **icon gear → "Konfigurasi"**:
 - **Optimasi Baterai** — Kelola izin nonaktifkan optimasi baterai
 - **Ikon Aplikasi** — Ganti ikon launcher antara Default dan Alternatif (tanpa uninstall)
 
-> Monitoring memori realtime + simpan snapshot yang dulu ada di halaman Konfigurasi kini dipindah ke tab **Monitor** di panel **Memory Info**.
+> Monitoring memori realtime + simpan snapshot yang dulu ada di halaman Konfigurasi kini dipindah ke tab **Monitor** di panel **Info Memori**.
 
 ---
 

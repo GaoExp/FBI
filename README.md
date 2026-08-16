@@ -1,7 +1,7 @@
 # FBI (Floating Battery Indicator)
 
->**Current Release:** `1.2.0` **Beta**
-**Last Updated:** `2026-08-15`
+>**Current Release:** `1.3.0` **Beta**
+**Last Updated:** `2026-08-16`
 
 >>FBI adalah aplikasi Android overlay yang menampilkan informasi baterai di atas aplikasi lain dengan fitur kustomisasi lengkap untuk warna, ukuran, posisi, dan kontrol sentuhan.
 
@@ -9,10 +9,10 @@
 
 ## ✨ Fitur Utama
 
-- **Battery Info Overlay** — Satu modul "Battery Info" berisi baris info Suhu (°C), Persen (%), Tegangan (V), Arus (mA), dan Daya (W) dalam satu overlay dengan satu posisi; urutan baris bisa diatur (▲/▼) dan tiap baris bisa disembunyikan; warna nilai, label & pemisah terpisah; interval update bisa diatur; pembacaan data dengan fallback dari sticky broadcast, BatteryManager, dan sysfs
+- **Battery Info Overlay** — Satu modul "Battery Info" berisi baris info Suhu (°C), Persen (%), Tegangan (V), Arus (mA), dan Daya (W) dalam satu overlay dengan satu posisi; urutan baris diatur dengan chip drag dua zona (Aktif/Nonaktif) dan tiap baris bisa disembunyikan; warna nilai, label & pemisah terpisah; interval update bisa diatur; pembacaan data dengan fallback dari sticky broadcast, BatteryManager, dan sysfs
 - **Panel Battery Info 3 Tab** — Panel pengaturan Battery Info memakai bottom navigation **Monitor | Overlay | Battery Strip**: tab Overlay untuk konfigurasi Battery Info, tab Battery Strip untuk konfigurasi Battery Strip, dan tab Monitor (placeholder monitor baterai, dikerjakan nanti)
 - **Battery Strip Overlay** — Bar baterai fleksibel di layar: Mode Cepat (snap ke sisi atas/bawah/kiri/kanan) atau Mode Manual (panjang & posisi bebas), orientasi horizontal/vertikal + invert, warna fill + strip kosong, skema warna level (Tanpa Skema / Klasik 3-warna / Hue Gradien), animasi fade + wave (kedutan gelombang) saat low dan shine + wave saat charging (kecepatan, lebar band, intensitas bisa diatur)
-- **Memory Info Overlay** — Modul overlay pemakaian memori proses (Java Heap, Native Heap, Graphics, Total Proses/PSS) via `Debug.getMemoryInfo()`, polling tiap detik dengan skip render bila nilai tidak berubah; panel pengaturan memakai bottom navigation **Monitor | Overlay** (Monitor = monitoring realtime + simpan snapshot, Overlay = konfigurasi)
+- **Info Memori Overlay** — Modul overlay pemakaian memori proses via `Debug.getMemoryInfo()` dengan dashboard tab Monitor 3 kartu (**Proses FBI** 14 nilai, **Runtime Java** 3 nilai, **RAM Sistem** + ringkasan + progress bar); polling terpusat per detik dikendalikan tombol **Mulai/Hentikan Pemantauan** dan switch **Pemantauan Latar Belakang** (overlay hanya aktif saat switch menyala); tombol **Salin Ke Clipboard** dan **Simpan Snapshot** (riwayat 20); panel memakai bottom navigation **Monitor | Overlay**
 - **Crash Logger** — Saat force close, stack trace otomatis ditulis ke `FBI_crash_*.txt` di folder Download (plus cadangan prefs) agar bug mudah dilaporkan tanpa logcat/adb
 - **Color Wheel & Hue Slider** — Dua mode color picker: HSV color wheel dengan crosshair atau slider Hue/Saturation/Brightness/Alpha. Two-way sync, color name auto-detection, HEX edit manual, saved colors
 - **Safe Area** — Batasi posisi overlay agar tidak masuk area notch/cutout

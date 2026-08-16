@@ -8,6 +8,13 @@ FBI/
 ├── PANDUAN.md                    — Panduan penggunaan lengkap
 ├── README.md                     — Ringkasan project & fitur
 ├── STRUKTUR.md                   — Struktur project (file ini)
+├── _Analisis/                    — Analisis internal: RAM & konsep optimasi
+│   ├── ANALISIS_RAM.md
+│   └── KONSEP_KERJA_OPTIMASI_RAM_FBI.md
+├── _Schedule/                    — Rencana fitur mendatang (PERENCANAAN)
+│   ├── KONSEP_BATTERY_MONITOR.md
+│   ├── KONSEP_CPU_MONITOR.md
+│   └── RENCANA_PANTAU_MEMORI.md
 ├── build.gradle                  — Root Gradle
 ├── gradle.properties             — Gradle: AndroidX, JVM args
 ├── gradlew / gradlew.bat         — Gradle wrapper scripts
@@ -42,8 +49,9 @@ FBI/
     │   │   │   │   ├── BatteryBarView.java           — Custom View bar baterai H/V (empty strip, fade, shine, wave)
     │   │   │   │   └── BatteryBarModule.java         — Bar baterai: mode cepat (snap sisi) & manual, update interval
     │   │   │   ├── memory_stats/
-    │   │   │   │   ├── MemoryConfig.java             — Konfigurasi overlay Memory Info (tampilan, ukuran, warna)
-    │   │   │   │   └── MemoryModule.java             — Overlay pemakaian memori via Debug.getMemoryInfo, polling per detik
+    │   │   │   │   ├── MemoryConfig.java             — Konfigurasi overlay Info Memori (tampilan, ukuran, warna)
+    │   │   │   │   ├── MemoryModule.java             — Overlay pemakaian memori via Debug.getMemoryInfo, polling per detik
+    │   │   │   │   └── MemoryMonitor.java            — Polling memori terpusat (statis, handler per detik), riwayat 20 snapshot
     │   │   │   └── color_picker/
     │   │   │       └── TriangleColorPickerView.java — Custom View segitiga HSV untuk Color Picker
     │   │   │
@@ -71,18 +79,18 @@ FBI/
     │   │   │       └── SectionHelper.java         — Utility collapsible section toggle ▸/▾
     │   │   │
     │   │   ├── ui/
-    │   │   │   ├── BatteryPanelController.java         — UI panel Battery (tab Overlay): toggle °C/%/V/mA/W, urutan info (drag & drop), size, color
-    │   │   │   ├── BatteryOrderAdapter.java            — RecyclerView adapter urutan info (checkbox tampil + drag handle ≡) untuk Battery Info
+    │   │   │   ├── BatteryPanelController.java         — UI panel Battery (tab Overlay): toggle °C/%/V/mA/W, urutan info (chip dua zona), size, color
+    │   │   │   ├── BatteryOrderZonesView.java          — View urutan item Battery Info: chip drag dua zona Aktif/Nonaktif
     │   │   │   ├── BatteryPositionController.java      — Kontrol posisi Battery Info
     │   │   │   ├── BatteryBarPanelController.java      — UI tab Battery Strip: quick/manual mode, warna, shadow
     │   │   │   ├── BatteryBarPositionController.java   — Kontrol posisi Battery Strip
-    │   │   │   ├── MemoryPanelController.java          — UI panel Memory Info (tab Monitor + tab Overlay + bottom nav)
-    │   │   │   ├── MemoryPositionController.java       — Kontrol posisi Memory Info
+    │   │   │   ├── MemoryPanelController.java          — UI panel Info Memori (tab Monitor + tab Overlay + bottom nav)
+    │   │   │   ├── MemoryPositionController.java       — Kontrol posisi Info Memori
     │   │   │   ├── BasePanelFragment.java              — Abstract base Fragment untuk semua panel
     │   │   │   ├── PanelManager.java                   — Kelola show/hide Fragment panel
     │   │   │   └── fragment/
     │   │   │       ├── BatteryPanelFragment.java       — Fragment Battery Info (bottom nav Monitor | Overlay | Battery Strip)
-    │   │   │       └── MemoryPanelFragment.java        — Fragment Memory Info (bottom nav Monitor | Overlay)
+    │   │   │       └── MemoryPanelFragment.java        — Fragment Info Memori (bottom nav Monitor | Overlay)
     │   │   │
     │   │   ├── utils/
     │   │   │   └── PermissionHelper.java    — Helper izin: overlay, notifikasi, optimasi baterai
@@ -107,12 +115,12 @@ FBI/
     │       │   ├── ic_launcher_bg_alt.xml   — Background adaptive icon alternatif (gradient hijau)
     │       │   ├── ic_launcher_foreground.xml — Foreground adaptive icon (vector baterai)
     │       │   ├── ic_launcher_foreground_alt.xml — Foreground ikon alternatif (vector baterai)
-    │       │   ├── ic_monitor.xml           — Ikon tab Monitor (bottom nav Memory Info)
+    │       │   ├── ic_monitor.xml           — Ikon tab Monitor (bottom nav Info Memori)
     │       │   ├── ic_notification_invisible.xml — Ikon mata tertutup untuk toggle hide
     │       │   ├── ic_notification_open.xml — Ikon buka aplikasi untuk notifikasi
     │       │   ├── ic_notification_toggle.xml — Ikon toggle untuk notifikasi
     │       │   ├── ic_notification_visible.xml — Ikon mata terbuka untuk toggle show
-    │       │   ├── ic_overlay.xml           — Ikon tab Overlay (bottom nav Memory Info)
+    │       │   ├── ic_overlay.xml           — Ikon tab Overlay (bottom nav Info Memori)
     │       │   ├── ic_screen_rotation.xml   — Ikon orientasi layar (toolbar)
     │       │   ├── ic_settings.xml          — Ikon gear untuk settings
     │       │   ├── ic_star_filled.xml       — Ikon bintang solid (favorit)
@@ -125,10 +133,9 @@ FBI/
     │       │   ├── drawer_header_bg.xml     — Drawable wrapper header drawer terang
     │       │   ├── toolbar_bg.xml           — Drawable wrapper toolbar bg terang
     │       │   ├── main_bg.xml              — Drawable wrapper main bg terang
-    │       │   ├── appbar_light.png         — Background toolbar tema terang
-    │       │   ├── bg_alt_light2.png        — Background drawer tema terang (varian 2)
-    │       │   ├── bg_main_light2.png       — Background layar utama tema terang (varian 2)
-    │       │   └── drawbar_light.png        — Background header drawer tema terang
+    │       │   ├── mem_badge_active_bg.xml  — Badge status pill "● Berjalan" di tab Monitor
+    │       │   ├── mem_badge_stopped_bg.xml — Badge status pill "● Berhenti" di tab Monitor
+    │       │   └── mem_card_bg.xml          — Background kartu dashboard tab Monitor (radius 14dp, outline tipis)
     │       ├── drawable-night/
     │       │   ├── drawer_bg.xml            — Drawable wrapper drawer bg gelap (flip 180°)
     │       │   ├── drawer_header_bg.xml     — Drawable wrapper header drawer gelap
@@ -140,19 +147,18 @@ FBI/
     │       │   ├── dialog_color_picker.xml      — Dialog color picker gabungan wheel + sliders
     │       │   ├── dialog_preset_browser.xml    — Dialog browser preset dengan search & list
     │       │   ├── drawer_content.xml           — Konten navigation drawer: RecyclerView item list
-    │       │   ├── item_battery_order.xml      — Item baris urutan info Battery Info (checkbox tampil + label + drag handle ≡)
     │       │   ├── nav_header.xml               — Header navigation drawer: logo + versi
     │       │   ├── notification_custom.xml      — Custom notification layout (RemoteViews + ImageButton)
     │       │   ├── panel_battery.xml            — Panel Battery Info: bottom nav 3 tab (Monitor | Overlay | Battery Strip); Overlay = konfigurasi Battery Info, Strip = konfigurasi Battery Strip
-    │       │   ├── panel_memory.xml             — Panel Memory Info: bottom nav 2 tab (Monitor | Overlay) + monitoring realtime
+    │       │   ├── panel_memory.xml             — Panel Info Memori: bottom nav 2 tab (Monitor | Overlay) + monitoring realtime
     │       │   └── preset_browser_item.xml      — Item layout untuk daftar preset
     │       ├── menu/
     │       │   ├── main_menu.xml     — Menu toolbar: theme, orientation, settings
     │       │   ├── menu_battery_bottom_nav.xml  — Menu bottom nav Battery Info: Monitor | Overlay | Battery Strip
-    │       │   └── menu_memory_bottom_nav.xml   — Menu bottom nav Memory Info: Monitor | Overlay
+    │       │   └── menu_memory_bottom_nav.xml   — Menu bottom nav Info Memori: Monitor | Overlay
     │       ├── color/
     │       │   ├── bat_nav_item_color.xml  — Selector warna item bottom nav Battery Info
-    │       │   └── mem_nav_item_color.xml  — Selector warna item bottom nav Memory Info
+    │       │   └── mem_nav_item_color.xml  — Selector warna item bottom nav Info Memori
     │       ├── mipmap-anydpi-v26/
     │       │   ├── ic_launcher.xml   — Adaptive icon launcher (default)
     │       │   └── ic_launcher_alt.xml   — Adaptive icon launcher (alternatif)
@@ -178,10 +184,10 @@ FBI/
 
 | Kategori | Jumlah |
 |----------|-------:|
-| Java source | 46 |
+| Java source | 47 |
 | Java test | 2 |
 | Layout XML | 10 |
-| Drawable XML | 34 |
+| Drawable XML | 37 |
 | Drawable PNG | 0 |
 | Values XML | 7 |
 | Color XML | 2 |
@@ -190,9 +196,9 @@ FBI/
 | Anim XML | 2 |
 | XML lainnya (Manifest) | 1 |
 | Assets (md) | 0 |
-| Root dokumen | 5 |
+| Root dokumen | 10 |
 | Root konfigurasi | 2 |
 | Gradle & wrapper | 5 |
 | CI/CD | 0 |
-| **Total file** | **~131** |
-| **Total direktori** | **~45** |
+| **Total file** | **~143** |
+| **Total direktori** | **~48** |

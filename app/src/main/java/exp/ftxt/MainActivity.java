@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String DEFAULT_SIDEBAR_JSON =
         "[{\"id\":\"navBattery\",\"l\":\"Battery Info\"}," +
-        "{\"id\":\"navMemory\",\"l\":\"Memory Info\"}]";
+        "{\"id\":\"navMemory\",\"l\":\"Info Memori\"}]";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -290,6 +290,7 @@ public class MainActivity extends AppCompatActivity {
         if (BatteryStatsConfig.enabled) return true;
         if (BatteryBarConfig.enabled) return true;
         if (MemoryConfig.enabled) return true;
+        if (MemoryConfig.backgroundMonitor) return true;
 
         return false;
     }
@@ -326,6 +327,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void killService() {
+        MemoryConfig.backgroundMonitor = false;
+        getSharedPreferences("ftxt_prefs", MODE_PRIVATE)
+                .edit().putBoolean("mem_bg_monitor", false).apply();
+        FloatingService.setBackgroundMonitorEnabled(false);
         if (FloatingService.instance != null) {
             stopService(new Intent(this, FloatingService.class));
         }
@@ -429,6 +434,7 @@ public class MainActivity extends AppCompatActivity {
         BatteryBarConfig.safeArea = true;
 
         MemoryConfig.enabled = prefs.getBoolean("mem_enabled", false);
+        MemoryConfig.backgroundMonitor = prefs.getBoolean("mem_bg_monitor", false);
         MemoryConfig.size = prefs.getFloat("mem_size", 12f);
         MemoryConfig.color = prefs.getInt("mem_color", Color.WHITE);
         MemoryConfig.labelColor = prefs.getInt("mem_label_color", Color.CYAN);
@@ -674,7 +680,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String normalizeSidebarLabel(String id, String label) {
         if ("navBattery".equals(id)) return "Battery Info";
-        if ("navMemory".equals(id)) return "Memory Info";
+        if ("navMemory".equals(id)) return "Info Memori";
         return label;
     }
 
